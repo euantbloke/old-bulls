@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Old Bulls | Raith and Abbotshall Curling Club</title>
+<meta name="description" content="League tables, fixtures and results for the Old Bulls senior league at Raith and Abbotshall Curling Club, Kirkcaldy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ice:#e9eff3;
+  --sheet:#ffffff;
+  --granite:#16232c;
+  --slate:#5d7180;
+  --hairline:#cfdae1;
+  --house-red:#c1372c;
+  --house-blue:#2a6b9b;
+  --gold:#c9971b;
+  --win:#1f6b4a;
+  --display:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --body:'Source Sans 3','Segoe UI',system-ui,sans-serif;
+  --pad:clamp(16px,4vw,32px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ice);color:var(--granite);
+  font-family:var(--body);font-size:17.5px;line-height:1.5;
+  font-variant-numeric:tabular-nums;
+}
+h1,h2,h3,th,.eyebrow,nav button,.badge{font-family:var(--display)}
+a{color:var(--house-blue)}
+
+/* ---------- masthead ---------- */
+.masthead{background:var(--granite);color:#fff;padding:var(--pad) var(--pad) 0}
+.mast-inner{max-width:1080px;margin:0 auto;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.house-mark{flex:0 0 auto}
+.mast-text h1{
+  margin:0;font-size:clamp(30px,7vw,50px);font-weight:800;
+  letter-spacing:-.02em;text-transform:uppercase;line-height:.95;
+}
+.mast-text p{margin:6px 0 0;color:#9fb4c1;font-size:15.5px;letter-spacing:.06em;text-transform:uppercase}
+.season-pick{margin-left:auto;display:flex;gap:8px;align-items:center}
+.season-pick label{color:#9fb4c1;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.season-pick select{
+  font:600 16px var(--body);background:#263945;color:#fff;
+  border:1px solid #3d5462;border-radius:6px;padding:7px 10px;
+}
+nav{max-width:1080px;margin:0 auto;display:flex;gap:2px;overflow-x:auto;padding-top:18px}
+nav button{
+  background:none;border:0;border-bottom:3px solid transparent;color:#9fb4c1;
+  font-size:15px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  padding:12px 14px;cursor:pointer;white-space:nowrap;
+}
+nav button:hover{color:#fff}
+nav button[aria-current="page"]{color:#fff;border-bottom-color:var(--house-red)}
+nav button:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+main{max-width:1080px;margin:0 auto;padding:var(--pad) var(--pad) 72px}
+.view{display:none}
+.view.on{display:block;animation:rise .28s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.eyebrow{
+  font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--slate);margin:0 0 10px;
+}
+h2{font-size:clamp(22px,4vw,29px);font-weight:700;letter-spacing:-.01em;margin:0 0 4px;text-transform:uppercase}
+h3{font-size:19px;font-weight:700;margin:0 0 2px;letter-spacing:-.005em}
+.sub{color:var(--slate);font-size:16px;margin:0 0 20px}
+
+/* ---------- the draw board (signature) ---------- */
+.board{
+  background:var(--granite);color:#fff;border-radius:14px;overflow:hidden;
+  position:relative;margin-bottom:28px;
+}
+.board::after{
+  content:"";position:absolute;right:-90px;top:50%;transform:translateY(-50%);
+  width:300px;height:300px;border-radius:50%;opacity:.14;pointer-events:none;
+  background:
+    radial-gradient(circle,#fff 0 8%,transparent 8%),
+    radial-gradient(circle,var(--house-red) 0 26%,transparent 26%),
+    radial-gradient(circle,#fff 0 44%,transparent 44%),
+    radial-gradient(circle,var(--house-blue) 0 68%,transparent 68%),
+    radial-gradient(circle,#fff 0 100%);
+}
+.board-head{padding:22px var(--pad) 4px;position:relative;z-index:1}
+.board-head .eyebrow{color:#8fa8b8}
+.board-head h2{margin:0;color:#fff}
+.board-head .when{color:var(--gold);font-weight:700;font-size:18px;margin-top:4px}
+.rinks{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:1px;
+  background:#2b3d49;margin-top:18px;position:relative;z-index:1}
+.rink{background:var(--granite);padding:16px var(--pad)}
+.rink .sheet-id{
+  font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:#8fa8b8;margin-bottom:8px;
+}
+.rink .pair{display:flex;align-items:baseline;gap:9px;font-size:17px}
+.rink .num{
+  font-family:var(--display);font-weight:800;font-size:15px;color:var(--granite);
+  background:#fff;border-radius:5px;padding:1px 8px;flex:0 0 auto;
+}
+.rink .v{color:#8fa8b8;font-size:13px;font-weight:700;letter-spacing:.1em;margin:5px 0}
+.rink .skip{color:#dbe6ed}
+
+/* ---------- cards and tables ---------- */
+.card{background:var(--sheet);border:1px solid var(--hairline);border-radius:12px;
+  padding:20px var(--pad);margin-bottom:22px}
+.card > .eyebrow:first-child{margin-top:0}
+.table-wrap{overflow-x:auto;margin:0 calc(var(--pad) * -1);padding:0 var(--pad)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+caption{text-align:left;font-family:var(--display);font-weight:700;font-size:19px;
+  text-transform:uppercase;letter-spacing:.01em;padding-bottom:2px}
+th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--hairline)}
+th{font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--slate);border-bottom:2px solid var(--granite);white-space:nowrap}
+th:nth-child(-n+3),td:nth-child(-n+3){text-align:left}
+td.pos{font-family:var(--display);font-weight:700;width:34px;color:var(--slate)}
+td.tno{font-family:var(--display);font-weight:800}
+td.skip{font-weight:600;white-space:nowrap}
+td.pts{font-family:var(--display);font-weight:800;font-size:18px}
+tbody tr:last-child td{border-bottom:0}
+tr.leader td{background:#f4f8e9}
+tr.leader td.pos{color:var(--granite)}
+.pos-mark{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-1px;
+  margin-right:5px;background:
+    radial-gradient(circle,var(--house-red) 0 34%,transparent 34%),
+    radial-gradient(circle,#fff 0 62%,transparent 62%),
+    radial-gradient(circle,var(--house-blue) 0 100%)}
+.pos-line{border-bottom:2px dashed var(--slate)!important}
+.neg{color:var(--house-red)}
+.foot-note{font-size:14.5px;color:var(--slate);margin:12px 0 0}
+
+/* ---------- results ---------- */
+.round{margin-bottom:18px}
+.round h3{font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);
+  border-bottom:1px solid var(--hairline);padding-bottom:6px;margin-bottom:8px}
+.match{display:grid;grid-template-columns:26px 1fr auto 1fr;gap:10px;align-items:baseline;
+  padding:7px 0;font-size:17px}
+.match .sh{font-family:var(--display);font-size:12px;font-weight:700;color:var(--slate);letter-spacing:.1em}
+.match .home{text-align:right}
+.match .score{font-family:var(--display);font-weight:800;font-size:18px;white-space:nowrap;padding:0 4px}
+.match .w{color:var(--win)}
+
+/* ---------- teams ---------- */
+.teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:16px}
+.team{background:var(--sheet);border:1px solid var(--hairline);border-radius:12px;padding:16px 18px}
+.team .tn{font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--slate)}
+.team ul{list-style:none;margin:10px 0 0;padding:0}
+.team li{padding:4px 0;border-top:1px solid var(--hairline);font-size:16.5px}
+.team li.cap{border-top:0;font-weight:700;padding-top:0}
+.team li.later{color:var(--slate)}
+.badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--house-red);color:#fff;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+
+/* ---------- fixtures ---------- */
+.fx{width:100%;border-collapse:collapse;min-width:520px}
+.fx th,.fx td{padding:8px;text-align:left;border-bottom:1px solid var(--hairline)}
+.fx td.d{white-space:nowrap;font-weight:600;width:1%}
+.fx td.m{font-family:var(--display);font-weight:600}
+.fx tr.past td{color:var(--slate)}
+.fx tr.next td{background:#fdf6e0}
+.away{list-style:none;padding:0;margin:0}
+.away li{padding:9px 0;border-bottom:1px solid var(--hairline);font-size:16.5px}
+.away li:last-child{border-bottom:0}
+.away b{display:block;font-family:var(--display);font-size:13px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--slate)}
+
+.empty{background:#fdf6e0;border:1px solid #e6d49a;border-radius:10px;padding:16px 18px;
+  color:#6b5312;font-size:16.5px}
+.honours{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.trophy{background:var(--sheet);border:1px solid var(--hairline);border-radius:12px;padding:18px}
+.trophy .name{font-family:var(--display);font-weight:800;font-size:17px;text-transform:uppercase;
+  letter-spacing:.02em;line-height:1.2}
+.trophy .terms{color:var(--slate);font-size:14.5px;margin:6px 0 12px}
+.trophy .holder{font-size:20px;font-weight:700}
+.trophy .holder span{display:block;font-size:14px;color:var(--slate);font-weight:400}
+details{margin-top:14px}
+summary{cursor:pointer;font-weight:600;color:var(--house-blue)}
+footer{border-top:1px solid var(--hairline);margin-top:40px;padding:22px var(--pad) 40px;
+  color:var(--slate);font-size:14.5px}
+footer .wrap{max-width:1080px;margin:0 auto}
+.print-btn{background:var(--granite);color:#fff;border:0;border-radius:7px;
+  font:600 15px var(--body);padding:9px 16px;cursor:pointer}
+
+@media (max-width:600px){
+  .match{grid-template-columns:22px 1fr auto 1fr;font-size:16px;gap:6px}
+  th,td{padding:8px 5px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{
+  .masthead nav,.season-pick,.print-btn,footer,.board::after{display:none}
+  body{background:#fff;font-size:11pt}
+  .masthead{background:#fff;color:#000;padding:0 0 8pt;border-bottom:2pt solid #000}
+  .mast-text h1{color:#000}
+  .card{border:0;padding:0;page-break-inside:avoid}
+  .view{display:none!important}
+  .view.on{display:block!important}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="mast-inner">
+    <svg class="house-mark" width="58" height="58" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="48" fill="#2a6b9b"/>
+      <circle cx="50" cy="50" r="34" fill="#fff"/>
+      <circle cx="50" cy="50" r="20" fill="#c1372c"/>
+      <circle cx="50" cy="50" r="7" fill="#fff"/>
+    </svg>
+    <div class="mast-text">
+      <h1>Old Bulls</h1>
+      <p>Raith and Abbotshall Curling Club</p>
+    </div>
+    <div class="season-pick">
+      <label for="season">Season</label>
+      <select id="season"></select>
+    </div>
+  </div>
+  <nav id="nav" aria-label="Sections"></nav>
+</header>
+
+<main>
+  <section class="view" id="v-home"></section>
+  <section class="view" id="v-tables"></section>
+  <section class="view" id="v-fixtures"></section>
+  <section class="view" id="v-results"></section>
+  <section class="view" id="v-teams"></section>
+  <section class="view" id="v-honours"></section>
+</main>
+
+<footer><div class="wrap">
+  <p id="foot-status"></p>
+  <p>Old Bulls senior league, Raith and Abbotshall Curling Club, Kirkcaldy.
+     Fixtures and team lists issued by Robin McAndie. Results queries to the match secretary.</p>
+</div></footer>
+
+<script>
+/* ============================================================
+   1. CONFIGURATION
+   ============================================================
+   Paste the "Publish to web" CSV link for the results sheet here.
+   Leave it empty and the page uses the results built in below.   */
+const SHEET_CSV_URL = "";
+
+/* ============================================================
+   2. SEASON DATA
+   ============================================================ */
+const SEASONS = {};
+
+SEASONS["2026/27"] = {
+  current: true,
+  teams: {
+    1:{skip:"J Browning", players:["M Baxendine","J Bebbington","S Gardner","J Hughes","A Lindsay"]},
+    2:{skip:"A Findlay",  players:["S Duncan","G Hudson","D Maiden","A McPherson"], later:["I Brown"]},
+    3:{skip:"E Fraser",   players:["F Durie","R Filsell","R Long","H Mitchell"]},
+    4:{skip:"R McLeod",   players:["C Lindsay","G Milne","C Reid","A Taylor"], later:["G DeVries"]},
+    5:{skip:"P Malcolm",  players:["P ChueHong","C Forrester","H Spears","M Stark","J Tripp"]},
+    6:{skip:"J O'Neill",  players:["I Brenkel","M Birkett","R Murray","J McWhinnie","D West"]},
+    7:{skip:"I Sankey",   players:["IRF Brown","R McAndie","A Robertson","K Stahly"]},
+    8:{skip:"A Stuart",   players:["D Barnett","R Diggins","S Drysdale","A Halliday"]}
+  },
+  notes:["Ian Brown and Gordon DeVries are not available until after the New Year.",
+         "New member: John Tripp."],
+  phases:{
+    league:{ label:"Leagues 1 and 2", window:"September to November",
+      dates:["2026-09-15","2026-09-22","2026-09-29","2026-10-06","2026-10-27","2026-11-03"],
+      fixtures:{
+        1:[["B",1,2],["C",3,4],["D",5,6],["E",7,8]],
+        2:[["B",5,7],["C",6,8],["D",1,3],["E",2,4]],
+        3:[["B",6,7],["C",1,4],["D",5,8],["E",2,3]],
+        4:[["B",1,2],["C",3,4],["D",5,6],["E",7,8]],
+        5:[["B",5,7],["C",6,8],["D",1,4],["E",2,3]],
+        6:[["B",6,7],["C",1,3],["D",5,8],["E",2,4]]
+      }},
+    playoff:{ label:"Trophy playoffs", window:"November",
+      dates:["2026-11-10","2026-11-17","2026-11-24"],
+      /* placeholders resolve automatically once both leagues finish */
+      fixtures:{
+        1:[["B","L1-1","L2-2"],["C","L1-2","L2-1"],["D","L1-3","L2-4"],["E","L2-3","L1-4"]],
+        2:[["B","L1-3","L2-3"],["C","L1-4","L2-4"],["D","L1-1","L2-1"],["E","L1-2","L2-2"]],
+        3:[["B","L2-1","L2-2"],["C","L1-1","L1-2"],["D","L2-3","L2-4"],["E","L1-3","L1-4"]]
+      }},
+    full:{ label:"Old Bull league", window:"December to March",
+      dates:["2026-12-01","2026-12-08","2026-12-15","2026-12-22","2027-01-12","2027-01-19",
+             "2027-01-26","2027-02-02","2027-02-09","2027-02-16","2027-02-23","2027-03-02",
+             "2027-03-09","2027-03-16"],
+      fixtures:{
+        1:[["B",4,6],["C",2,5],["D",7,8],["E",1,3]],
+        2:[["B",1,5],["C",6,8],["D",2,7],["E",3,4]],
+        3:[["B",4,7],["C",1,8],["D",3,5],["E",2,6]],
+        4:[["B",3,6],["C",5,8],["D",2,4],["E",1,7]],
+        5:[["B",6,7],["C",1,2],["D",4,5],["E",3,8]],
+        6:[["B",1,4],["C",2,8],["D",3,7],["E",5,6]],
+        7:[["B",5,7],["C",4,8],["D",2,3],["E",1,6]],
+        8:[["B",4,6],["C",2,5],["D",7,8],["E",1,3]],
+        9:[["B",1,5],["C",6,8],["D",2,7],["E",3,4]],
+        10:[["B",4,7],["C",1,8],["D",3,5],["E",2,6]],
+        11:[["B",3,6],["C",5,8],["D",2,4],["E",1,7]],
+        12:[["B",6,7],["C",1,2],["D",4,5],["E",3,8]],
+        13:[["B",1,4],["C",2,8],["D",3,7],["E",5,6]],
+        14:[["B",5,7],["C",4,8],["D",2,3],["E",1,6]]
+      }}
+  },
+  away:[
+    {when:"Monday 30 November 2026", who:"Crerar Seniors", where:"Murrayfield, 2 rinks", note:"Provisional"},
+    {when:"Monday 1 February 2027", who:"Stirling Old Fellows", where:"Stirling, 2 rinks, 12.30pm"},
+    {when:"Monday 15 February 2027", who:"Kinross+50", where:"Kirkcaldy, 3 rinks, 12.30pm"},
+    {when:"Tuesday 23 March 2027", who:"Kirkcaldy Senior Ladies", where:"Top four teams in the Old Bull table"}
+  ],
+  results:[]
+};
+
+SEASONS["2025/26"] = {
+  current:false,
+  teams:{
+    1:{skip:"IRF Brown", players:["D Barnett","A Findlay","R Long","H Spears","D West"]},
+    2:{skip:"P ChueHong",players:["I Brown","J Browning","E Cockburn","A Robertson","S Gardner"]},
+    3:{skip:"S Drysdale",players:["M Baxendine","M Birkett","G Milne","J O'Neill"]},
+    4:{skip:"C Forrester",players:["I Brenkel","E Fraser","J McWhinnie","R McAndie","R Murray"]},
+    5:{skip:"J Hughes",  players:["J Bebbington","R Filsell","D Maiden","C Reid","A Taylor"]},
+    6:{skip:"K Stahly",  players:["G DeVries","R Diggins","A Lindsay","A Stuart"]},
+    7:{skip:"M Stark",   players:["S Duncan","D Martin","R McLeod","H Mitchell","P Malcolm"]},
+    8:{skip:"G Hudson",  players:["F Durie","A Halliday","C Lindsay","A McPherson","I Sankey"]}
+  },
+  notes:["Final season under Euan Fraser's convenership."],
+  phases:{
+    league:{ label:"Leagues 1 and 2", window:"September to November",
+      dates:["2025-09-16","2025-09-23","2025-09-30","2025-10-07","2025-10-28","2025-11-04"],
+      fixtures:{
+        1:[["B",1,2],["C",3,4],["D",5,6],["E",7,8]],
+        2:[["B",5,7],["C",6,8],["D",1,3],["E",2,4]],
+        3:[["B",6,7],["C",1,4],["D",5,8],["E",2,3]],
+        4:[["B",1,2],["C",3,4],["D",5,6],["E",7,8]],
+        5:[["B",5,7],["C",6,8],["D",1,4],["E",2,3]],
+        6:[["B",6,7],["C",1,3],["D",5,8],["E",2,4]]
+      }},
+    playoff:{ label:"Trophy playoffs", window:"November",
+      dates:["2025-11-11","2025-11-18","2025-11-25"],
+      fixtures:{
+        1:[["B",4,6],["C",1,7],["D",2,8],["E",3,5]],
+        2:[["B",2,5],["C",3,8],["D",4,7],["E",1,6]],
+        3:[["B",6,7],["C",1,4],["D",5,8],["E",2,3]]
+      }},
+    full:{ label:"Old Bull league", window:"December to March",
+      dates:["2025-12-02","2025-12-09","2025-12-16","2026-01-06","2026-01-13","2026-01-20",
+             "2026-01-27","2026-02-03","2026-02-10","2026-02-17","2026-02-24","2026-03-03",
+             "2026-03-10","2026-03-17"],
+      fixtures:{
+        1:[["B",4,6],["C",2,5],["D",7,8],["E",1,3]],
+        2:[["B",1,5],["C",6,8],["D",2,7],["E",3,4]],
+        3:[["B",4,7],["C",1,8],["D",3,5],["E",2,6]],
+        4:[["B",3,6],["C",5,8],["D",2,4],["E",1,7]],
+        5:[["B",6,7],["C",1,2],["D",4,5],["E",3,8]],
+        6:[["B",1,4],["C",2,8],["D",3,7],["E",5,6]],
+        7:[["B",5,7],["C",4,8],["D",2,3],["E",1,6]],
+        8:[["B",4,6],["C",2,5],["D",7,8],["E",1,3]],
+        9:[["B",1,5],["C",6,8],["D",2,7],["E",3,4]],
+        10:[["B",4,7],["C",1,8],["D",3,5],["E",2,6]],
+        11:[["B",3,6],["C",5,8],["D",2,4],["E",1,7]],
+        12:[["B",6,7],["C",1,2],["D",4,5],["E",3,8]],
+        13:[["B",1,4],["C",2,8],["D",3,7],["E",5,6]],
+        14:[["B",5,7],["C",4,8],["D",2,3],["E",1,6]]
+      }},
+  },
+  away:[
+    {when:"Wednesday 5 November 2025", who:"Kinross+50", where:"Kinross, 3 rinks, 2.15pm"},
+    {when:"Monday 24 November 2025", who:"Crerar Seniors", where:"Murrayfield, 2 rinks, 2.30pm"},
+    {when:"Monday 9 February 2026", who:"Stirling Old Fellows", where:"Kirkcaldy, 2 rinks, 12.00pm"},
+    {when:"Tuesday 24 March 2026", who:"Kirkcaldy Senior Ladies", where:"Top four teams in the Old Bull table"}
+  ],
+  results:[]
+};
+
+/* 2025/26 results, recovered from the workbook. Every table below reproduces
+   the published final standings exactly. Order: phase, round, date, sheet,
+   team A, team B, shots A, shots B, ends A, ends B. */
+const ARCHIVE_2526 = [["l",1,"2025-09-16","B",1,2,11,6,4,4],["l",1,"2025-09-16","C",3,4,3,11,3,5],["l",1,"2025-09-16","D",5,6,5,8,3,5],["l",1,"2025-09-16","E",7,8,9,8,4,4],["l",2,"2025-09-23","B",5,7,6,7,4,4],["l",2,"2025-09-23","C",6,8,10,4,6,3],["l",2,"2025-09-23","D",1,3,9,3,5,3],["l",2,"2025-09-23","E",2,4,7,6,4,4],["l",3,"2025-09-30","B",6,7,3,12,3,6],["l",3,"2025-09-30","C",1,4,8,8,5,3],["l",3,"2025-09-30","D",5,8,10,6,6,3],["l",3,"2025-09-30","E",2,3,9,2,6,2],["l",4,"2025-10-07","B",1,2,7,5,5,3],["l",4,"2025-10-07","C",3,4,4,7,4,4],["l",4,"2025-10-07","D",5,6,4,7,3,4],["l",4,"2025-10-07","E",7,8,11,4,6,3],["l",5,"2025-10-28","B",5,7,7,13,5,5],["l",5,"2025-10-28","C",6,8,4,9,3,4],["l",5,"2025-10-28","D",1,4,5,11,2,6],["l",5,"2025-10-28","E",2,3,5,8,4,4],["l",6,"2025-11-04","B",6,7,10,8,4,3],["l",6,"2025-11-04","C",1,3,4,10,3,5],["l",6,"2025-11-04","D",5,8,6,8,4,4],["l",6,"2025-11-04","E",2,4,6,5,4,4],["p",1,"2025-11-11","B",4,6,8,1,7,1],["p",1,"2025-11-11","C",1,7,8,6,5,3],["p",1,"2025-11-11","D",2,8,6,7,4,3],["p",1,"2025-11-11","E",3,5,12,2,6,3],["p",2,"2025-11-18","B",2,5,8,8,4,4],["p",2,"2025-11-18","C",3,8,10,5,5,3],["p",2,"2025-11-18","D",4,7,8,9,4,4],["p",2,"2025-11-18","E",1,6,11,8,4,4],["p",3,"2025-11-25","B",6,7,5,6,4,4],["p",3,"2025-11-25","C",1,4,0,14,0,8],["p",3,"2025-11-25","D",5,8,7,7,6,1],["p",3,"2025-11-25","E",2,3,3,12,3,6],["f",1,"2025-12-02","B",4,6,2,10,2,6],["f",1,"2025-12-02","C",2,5,8,6,6,2],["f",1,"2025-12-02","D",7,8,7,10,3,5],["f",1,"2025-12-02","E",1,3,1,14,1,7],["f",2,"2025-12-09","B",1,5,3,7,3,5],["f",2,"2025-12-09","C",6,8,9,2,6,2],["f",2,"2025-12-09","D",2,7,0,12,0,8],["f",2,"2025-12-09","E",3,4,14,7,5,3],["f",3,"2025-12-16","B",4,7,3,15,2,6],["f",3,"2025-12-16","C",1,8,3,11,3,5],["f",3,"2025-12-16","D",3,5,6,7,4,4],["f",3,"2025-12-16","E",2,6,2,10,1,7],["f",4,"2026-01-06","B",3,6,12,3,6,2],["f",4,"2026-01-06","C",5,8,9,7,5,3],["f",4,"2026-01-06","D",2,4,9,8,5,3],["f",4,"2026-01-06","E",1,7,5,4,4,4],["f",5,"2026-01-13","B",6,7,4,15,3,5],["f",5,"2026-01-13","C",1,2,7,11,3,5],["f",5,"2026-01-13","D",4,5,8,2,6,2],["f",5,"2026-01-13","E",3,8,18,2,6,2],["f",6,"2026-01-20","B",1,4,7,6,3,5],["f",6,"2026-01-20","C",2,8,10,5,4,4],["f",6,"2026-01-20","D",3,7,7,6,5,3],["f",6,"2026-01-20","E",5,6,3,8,2,6],["f",7,"2026-01-27","B",5,7,10,11,4,4],["f",7,"2026-01-27","C",4,8,6,6,4,4],["f",7,"2026-01-27","D",2,3,6,7,4,4],["f",7,"2026-01-27","E",1,6,6,12,3,5],["f",8,"2026-02-03","B",4,6,14,3,6,2],["f",8,"2026-02-03","C",2,5,3,6,3,5],["f",8,"2026-02-03","D",7,8,2,9,2,6],["f",8,"2026-02-03","E",1,3,2,13,2,6],["f",9,"2026-02-10","B",1,5,6,4,5,3],["f",9,"2026-02-10","C",6,8,3,5,3,5],["f",9,"2026-02-10","D",2,7,3,6,3,5],["f",9,"2026-02-10","E",3,4,10,5,5,3],["f",10,"2026-02-17","B",4,7,7,4,5,3],["f",10,"2026-02-17","C",1,8,7,8,5,3],["f",10,"2026-02-17","D",3,5,8,8,4,4],["f",10,"2026-02-17","E",2,6,4,9,2,6],["f",11,"2026-02-24","B",3,6,11,8,5,3],["f",11,"2026-02-24","C",5,8,9,1,7,1],["f",11,"2026-02-24","D",2,4,9,3,6,2],["f",11,"2026-02-24","E",1,7,4,12,3,5],["f",12,"2026-03-03","B",6,7,6,5,4,4],["f",12,"2026-03-03","C",1,2,7,8,3,5],["f",12,"2026-03-03","D",4,5,6,8,4,4],["f",12,"2026-03-03","E",3,8,6,8,4,4],["f",13,"2026-03-10","B",1,4,8,6,5,3],["f",13,"2026-03-10","C",2,8,11,2,6,2],["f",13,"2026-03-10","D",3,7,4,12,2,6],["f",13,"2026-03-10","E",5,6,5,5,3,5],["f",14,"2026-03-17","B",5,7,6,6,4,4],["f",14,"2026-03-17","C",4,8,2,10,2,6],["f",14,"2026-03-17","D",2,3,4,8,4,4],["f",14,"2026-03-17","E",1,6,5,6,4,4]];
+
+const PHASE_KEY = {l:"league", p:"playoff", f:"full"};
+SEASONS["2025/26"].results = ARCHIVE_2526.map(r => ({
+  phase:PHASE_KEY[r[0]], round:r[1], date:r[2], sheet:r[3],
+  teamA:r[4], teamB:r[5], shotsA:r[6], shotsB:r[7], endsA:r[8], endsB:r[9]
+}));
+
+/* ============================================================
+   3. TABLE ENGINE
+   ============================================================ */
+const TROPHIES = {
+  league:  {1:{name:"League 1", teams:[1,2,3,4]}, 2:{name:"League 2", teams:[5,6,7,8]}},
+  playoff: {bell:{name:"Duncan Bell Trophy", terms:"Playoff of the league winners and runners up"},
+            tor: {name:"Toreador Salver", terms:"Playoff of the third and fourth placed teams"}},
+  full:    {name:"Old Bull Trophy", terms:"Winner of the full league, December to March"}
+};
+
+function buildTable(matches, teamIds){
+  const t = new Map();
+  const touch = id => {
+    if(!t.has(id)) t.set(id,{team:id,p:0,w:0,l:0,d:0,f:0,a:0,e:0,pts:0});
+    return t.get(id);
+  };
+  (teamIds||[]).forEach(touch);
+  for(const m of matches){
+    for(const [me,you] of [["A","B"],["B","A"]]){
+      const id = m["team"+me];
+      if(teamIds && !teamIds.includes(id)) continue;
+      const r = touch(id), sf = m["shots"+me], sa = m["shots"+you];
+      r.p++; r.f += sf; r.a += sa; r.e += m["ends"+me];
+      if(sf > sa){ r.w++; r.pts += 2; }
+      else if(sf < sa){ r.l++; }
+      else { r.d++; r.pts += 1; }
+    }
+  }
+  return [...t.values()].map(r => ({...r, sd:r.f - r.a}))
+    .sort((x,y) => y.pts-x.pts || y.sd-x.sd || y.e-x.e || y.f-x.f || x.team-y.team);
+}
+
+/* Once both mini leagues are complete, the placeholder playoff draw resolves
+   to real team numbers: "L1-2" means the runner up in League 1. */
+function resolveDraw(season){
+  const played = season.results.filter(m => m.phase === "league");
+  const complete = played.length === 24;
+  const map = {};
+  if(complete){
+    [1,2].forEach(lg => {
+      buildTable(played, TROPHIES.league[lg].teams)
+        .forEach((r,i) => map["L"+lg+"-"+(i+1)] = r.team);
+    });
+  }
+  return {complete, map};
+}
+function playoffGroups(season){
+  const {complete, map} = resolveDraw(season);
+  if(!complete) return null;
+  return {
+    bell:[map["L1-1"],map["L1-2"],map["L2-1"],map["L2-2"]],
+    tor: [map["L1-3"],map["L1-4"],map["L2-3"],map["L2-4"]]
+  };
+}
+function fixtureTeams(season, phase, entry){
+  const {map} = resolveDraw(season);
+  const one = v => (typeof v === "number") ? v : (map[v] ?? null);
+  return [one(entry[1]), one(entry[2])];
+}
+function placeholderLabel(v){
+  if(typeof v === "number") return "Team " + v;
+  const [lg,pos] = v.split("-");
+  return ["1st","2nd","3rd","4th"][pos-1] + " " + (lg === "L1" ? "League 1" : "League 2");
+}
+
+/* ============================================================
+   4. RENDERING
+   ============================================================ */
+let SEASON_KEY = Object.keys(SEASONS).find(k => SEASONS[k].current);
+const S = () => SEASONS[SEASON_KEY];
+const ORDER = ["league","playoff","full"];
+const fmtDate = iso => new Date(iso+"T12:00:00").toLocaleDateString("en-GB",
+  {weekday:"short", day:"numeric", month:"long", year:"numeric"});
+const fmtShort = iso => new Date(iso+"T12:00:00").toLocaleDateString("en-GB",
+  {weekday:"short", day:"numeric", month:"short"});
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const skipOf = n => S().teams[n] ? S().teams[n].skip : "";
+
+function resultFor(phase, round, a, b){
+  return S().results.find(m => m.phase === phase && m.round === round &&
+    ((m.teamA === a && m.teamB === b) || (m.teamA === b && m.teamB === a)));
+}
+function roundPlayed(phase, round){
+  return S().results.some(m => m.phase === phase && m.round === round);
+}
+
+/* the next night that has no results in yet */
+function nextRound(){
+  for(const phase of ORDER){
+    const ph = S().phases[phase];
+    for(let r = 1; r <= ph.dates.length; r++){
+      if(!roundPlayed(phase, r)) return {phase, round:r, date:ph.dates[r-1]};
+    }
+  }
+  return null;
+}
+
+function tableHTML(caption, rows, opts={}){
+  const cut = opts.splitAfter || 0;
+  const body = rows.map((r,i) => `
+    <tr class="${i===0 && r.p>0 ? "leader":""} ${cut && i===cut-1 ? "pos-line":""}">
+      <td class="pos">${i===0 && r.p>0 ? '<span class="pos-mark"></span>':''}${i+1}</td>
+      <td class="tno">${r.team}</td>
+      <td class="skip">${esc(skipOf(r.team))}</td>
+      <td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.d}</td>
+      <td>${r.f}</td><td>${r.a}</td><td>${r.e}</td>
+      <td class="${r.sd<0?"neg":""}">${r.sd>0?"+":""}${r.sd}</td>
+      <td class="pts">${r.pts}</td>
+    </tr>`).join("");
+  return `<div class="table-wrap"><table>
+    <caption>${esc(caption)}</caption>
+    <thead><tr>
+      <th>Pos</th><th>Team</th><th>Skip</th><th>P</th><th>W</th><th>L</th><th>D</th>
+      <th>For</th><th>Ag</th><th>Ends</th><th>Shot diff</th><th>Pts</th>
+    </tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+function renderHome(){
+  const nx = nextRound();
+  let board = "";
+  if(nx){
+    const ph = S().phases[nx.phase];
+    const cards = ph.fixtures[nx.round].map(fx => {
+      const [a,b] = fixtureTeams(S(), nx.phase, fx);
+      const side = (t, raw) => t
+        ? `<div class="pair"><span class="num">${t}</span><span class="skip">${esc(skipOf(t))}</span></div>`
+        : `<div class="pair"><span class="skip">${esc(placeholderLabel(raw))}</span></div>`;
+      return `<div class="rink">
+        <div class="sheet-id">Sheet ${fx[0]}</div>
+        ${side(a, fx[1])}<div class="v">v</div>${side(b, fx[2])}
+      </div>`;
+    }).join("");
+    board = `<div class="board">
+      <div class="board-head">
+        <p class="eyebrow">Next on the ice &middot; ${esc(ph.label)}, round ${nx.round}</p>
+        <h2>The Draw</h2>
+        <p class="when">${fmtDate(nx.date)}</p>
+      </div>
+      <div class="rinks">${cards}</div>
+    </div>`;
+  } else {
+    board = `<div class="board"><div class="board-head">
+      <p class="eyebrow">Season complete</p><h2>That is the ice off</h2>
+      <p class="when">All rounds played</p></div><div class="rinks"></div></div>`;
+  }
+
+  let live = "";
+  const played = S().results;
+  if(played.length === 0){
+    live = `<div class="empty"><strong>No results yet.</strong> Tables appear here as soon as
+      the first night's scores are entered. The full fixture list is on the Fixtures page.</div>`;
+  } else {
+    const phase = [...ORDER].reverse().find(p => played.some(m => m.phase === p));
+    if(phase === "league"){
+      live = `<div class="card">${tableHTML("League 1", buildTable(played.filter(m=>m.phase==="league"),[1,2,3,4]))}</div>
+              <div class="card">${tableHTML("League 2", buildTable(played.filter(m=>m.phase==="league"),[5,6,7,8]))}</div>`;
+    } else if(phase === "playoff"){
+      const g = playoffGroups(S());
+      const pm = played.filter(m=>m.phase==="playoff");
+      live = `<div class="card">${tableHTML("Duncan Bell Trophy", buildTable(pm,g.bell))}</div>
+              <div class="card">${tableHTML("Toreador Salver", buildTable(pm,g.tor))}</div>`;
+    } else {
+      live = `<div class="card">${tableHTML("Old Bull Trophy",
+        buildTable(played.filter(m=>m.phase==="full"),[1,2,3,4,5,6,7,8]), {splitAfter:4})}
+        <p class="foot-note">The dashed line marks the top four, who play Kirkcaldy Senior Ladies in March.</p></div>`;
+    }
+  }
+
+  const last = lastResultsBlock();
+  document.getElementById("v-home").innerHTML = board + live + last;
+}
+
+function lastResultsBlock(){
+  const played = S().results;
+  if(!played.length) return "";
+  let found = null;
+  for(const phase of [...ORDER].reverse()){
+    const rs = played.filter(m => m.phase === phase).map(m => m.round);
+    if(rs.length){ found = {phase, round:Math.max(...rs)}; break; }
+  }
+  const ms = played.filter(m => m.phase === found.phase && m.round === found.round);
+  return `<div class="card">
+    <p class="eyebrow">Latest results &middot; ${esc(S().phases[found.phase].label)}, round ${found.round}</p>
+    ${ms.map(matchLine).join("")}
+  </div>`;
+}
+
+function matchLine(m){
+  const aw = m.shotsA > m.shotsB, bw = m.shotsB > m.shotsA;
+  return `<div class="match">
+    <span class="sh">${m.sheet}</span>
+    <span class="home"><b>${m.teamA}</b> ${esc(skipOf(m.teamA))}</span>
+    <span class="score"><span class="${aw?"w":""}">${m.shotsA}</span> &ndash;
+      <span class="${bw?"w":""}">${m.shotsB}</span></span>
+    <span><b>${m.teamB}</b> ${esc(skipOf(m.teamB))}</span>
+  </div>`;
+}
+
+function renderTables(){
+  const played = S().results;
+  const lg = played.filter(m=>m.phase==="league");
+  const po = played.filter(m=>m.phase==="playoff");
+  const fl = played.filter(m=>m.phase==="full");
+  const g = playoffGroups(S());
+  let html = `<p class="eyebrow">Standings</p><h2>League Tables</h2>
+    <p class="sub">Two points for a win, one for a draw. Teams level on points are separated by
+    shot difference, then ends won, then shots for.</p>`;
+
+  html += `<div class="card">${tableHTML("League 1, September to November", buildTable(lg,[1,2,3,4]))}
+    ${tableHTML("League 2, September to November", buildTable(lg,[5,6,7,8]))}
+    <p class="foot-note">The top two in each league go into the Duncan Bell Trophy playoff,
+      the bottom two into the Toreador Salver.</p></div>`;
+
+  if(g){
+    html += `<div class="card">${tableHTML("Duncan Bell Trophy", buildTable(po,g.bell))}
+      ${tableHTML("Toreador Salver", buildTable(po,g.tor))}</div>`;
+  } else {
+    html += `<div class="card"><p class="eyebrow">Trophy playoffs</p>
+      <div class="empty">The playoff draw is set by the two league tables above and will appear
+      here once all six league rounds are played.</div></div>`;
+  }
+
+  html += `<div class="card">${tableHTML("Old Bull Trophy, December to March",
+    buildTable(fl,[1,2,3,4,5,6,7,8]), {splitAfter:4})}
+    <p class="foot-note">The dashed line marks the top four, who play Kirkcaldy Senior Ladies in March.</p>
+    <button class="print-btn" onclick="window.print()">Print this page for the notice board</button></div>`;
+
+  document.getElementById("v-tables").innerHTML = html;
+}
+
+function renderFixtures(){
+  let html = `<p class="eyebrow">Season ${esc(SEASON_KEY)}</p><h2>Fixtures</h2>
+    <p class="sub">All league nights are Tuesdays at Fife Ice Arena, sheets B, C, D and E.</p>`;
+  const nx = nextRound();
+  for(const phase of ORDER){
+    const ph = S().phases[phase];
+    const rows = ph.dates.map((d,i) => {
+      const rnd = i + 1;
+      const cells = ph.fixtures[rnd].map(fx => {
+        const [a,b] = fixtureTeams(S(), phase, fx);
+        return (a && b) ? `${a} v ${b}`
+          : `<span style="font-weight:400">${esc(placeholderLabel(fx[1]))} v ${esc(placeholderLabel(fx[2]))}</span>`;
+      });
+      const cls = (nx && nx.phase===phase && nx.round===rnd) ? "next"
+                : roundPlayed(phase,rnd) ? "past" : "";
+      return `<tr class="${cls}"><td class="d">${rnd}</td><td class="d">${fmtShort(d)}</td>
+        ${cells.map(c=>`<td class="m">${c}</td>`).join("")}</tr>`;
+    }).join("");
+    html += `<div class="card"><p class="eyebrow">${esc(ph.window)}</p><h3>${esc(ph.label)}</h3>
+      <div class="table-wrap"><table class="fx"><thead><tr>
+        <th>Rd</th><th>Date</th><th>Sheet B</th><th>Sheet C</th><th>Sheet D</th><th>Sheet E</th>
+      </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  }
+  html += `<div class="card"><p class="eyebrow">Away and friendly matches</p>
+    <ul class="away">${S().away.map(a =>
+      `<li><b>${esc(a.when)}</b>${esc(a.who)}. ${esc(a.where)}.${a.note ? " " + esc(a.note) + "." : ""}</li>`
+    ).join("")}</ul></div>`;
+  document.getElementById("v-fixtures").innerHTML = html;
+}
+
+function renderResults(){
+  const played = S().results;
+  let html = `<p class="eyebrow">Season ${esc(SEASON_KEY)}</p><h2>Results</h2>`;
+  if(!played.length){
+    html += `<div class="empty"><strong>No results yet.</strong> The first night is
+      ${fmtDate(S().phases.league.dates[0])}.</div>`;
+    document.getElementById("v-results").innerHTML = html;
+    return;
+  }
+  html += `<p class="sub">${played.length} matches played.</p>`;
+  for(const phase of ORDER){
+    const ph = S().phases[phase];
+    const any = played.some(m => m.phase === phase);
+    if(!any) continue;
+    html += `<div class="card"><p class="eyebrow">${esc(ph.label)}</p>`;
+    for(let r = 1; r <= ph.dates.length; r++){
+      const ms = played.filter(m => m.phase === phase && m.round === r);
+      if(!ms.length) continue;
+      html += `<div class="round"><h3>Round ${r}, ${fmtShort(ph.dates[r-1])}</h3>
+        ${ms.map(matchLine).join("")}</div>`;
+    }
+    html += `</div>`;
+  }
+  document.getElementById("v-results").innerHTML = html;
+}
+
+function renderTeams(){
+  const t = S().teams;
+  const cards = Object.keys(t).map(n => {
+    const team = t[n];
+    const later = (team.later||[]).map(p =>
+      `<li class="later">${esc(p)} <span style="font-size:13px">(after New Year)</span></li>`).join("");
+    return `<div class="team">
+      <div class="tn">Team ${n}</div>
+      <ul>
+        <li class="cap">${esc(team.skip)}<span class="badge">Skip</span></li>
+        ${team.players.map(p => `<li>${esc(p)}</li>`).join("")}
+        ${later}
+      </ul></div>`;
+  }).join("");
+  const notes = S().notes.length
+    ? `<div class="card"><p class="eyebrow">Notes</p>${S().notes.map(n=>`<p style="margin:4px 0">${esc(n)}</p>`).join("")}</div>`
+    : "";
+  document.getElementById("v-teams").innerHTML =
+    `<p class="eyebrow">Season ${esc(SEASON_KEY)}</p><h2>Teams</h2>
+     <p class="sub">Eight teams. Skips are shown first.</p>
+     <div class="teams">${cards}</div>${notes}
+     <div class="card"><p class="eyebrow">Contact details</p>
+       <p style="margin:0">Phone numbers and email addresses are not published on this site.
+       The contact list is circulated by email to members only.</p></div>`;
+}
+
+function renderHonours(){
+  const winners = [];
+  for(const key of Object.keys(SEASONS)){
+    const s = SEASONS[key];
+    const res = s.results;
+    if(!res.length) continue;
+    const nameOf = n => s.teams[n] ? s.teams[n].skip : "Team " + n;
+    const fl = res.filter(m=>m.phase==="full");
+    const po = res.filter(m=>m.phase==="playoff");
+    const complete = fl.length === s.phases.full.dates.length * 4;
+    if(!complete) continue;
+    const gp = (() => {
+      const lgm = res.filter(m=>m.phase==="league");
+      if(lgm.length !== 24) return null;
+      const m1 = buildTable(lgm,[1,2,3,4]).map(r=>r.team);
+      const m2 = buildTable(lgm,[5,6,7,8]).map(r=>r.team);
+      return {bell:[m1[0],m1[1],m2[0],m2[1]], tor:[m1[2],m1[3],m2[2],m2[3]]};
+    })();
+    winners.push({
+      season:key,
+      oldbull: buildTable(fl,[1,2,3,4,5,6,7,8])[0],
+      bell: gp ? buildTable(po,gp.bell)[0] : null,
+      tor:  gp ? buildTable(po,gp.tor)[0]  : null,
+      nameOf
+    });
+  }
+  const card = (name, terms, w, nameOf, season) => `
+    <div class="trophy"><div class="name">${esc(name)}</div>
+      <p class="terms">${esc(terms)}</p>
+      ${w ? `<div class="holder">${esc(nameOf(w.team))}
+        <span>Team ${w.team} &middot; ${season} &middot; ${w.pts} points</span></div>`
+          : `<div class="holder" style="color:var(--slate);font-size:16px">Not yet awarded</div>`}
+    </div>`;
+  let html = `<p class="eyebrow">Roll of honour</p><h2>Trophies</h2>
+    <p class="sub">Three trophies are played for each season.</p>`;
+  if(!winners.length){
+    html += `<div class="honours">
+      ${card("Old Bull Trophy", TROPHIES.full.terms, null, null, "")}
+      ${card("Duncan Bell Trophy", TROPHIES.playoff.bell.terms, null, null, "")}
+      ${card("Toreador Salver", TROPHIES.playoff.tor.terms, null, null, "")}</div>`;
+  }
+  for(const w of winners){
+    html += `<div class="card"><p class="eyebrow">Season ${esc(w.season)}</p>
+      <div class="honours">
+        ${card("Old Bull Trophy", TROPHIES.full.terms, w.oldbull, w.nameOf, w.season)}
+        ${card("Duncan Bell Trophy", TROPHIES.playoff.bell.terms, w.bell, w.nameOf, w.season)}
+        ${card("Toreador Salver", TROPHIES.playoff.tor.terms, w.tor, w.nameOf, w.season)}
+      </div></div>`;
+  }
+  html += `<div class="card"><p class="eyebrow">About these records</p>
+    <p style="margin:0 0 10px">The 2025/26 figures were recovered from the club spreadsheet and
+    reproduce the published final standings exactly across all five tables.</p>
+    <details><summary>One known discrepancy in the 2025/26 source</summary>
+      <p style="font-size:16px;color:var(--slate)">In round 9 of the Old Bull league, team 1 recorded
+      a 6 to 4 win over team 5, while team 5 recorded a 3 to 5 defeat. The two rows disagree by one
+      shot each way. Team 1's version is used here. Points, shot difference and final positions are
+      unaffected.</p></details></div>`;
+  document.getElementById("v-honours").innerHTML = html;
+}
+
+/* ============================================================
+   5. NAVIGATION AND OPTIONAL LIVE SHEET
+   ============================================================ */
+const TABS = [["home","This week"],["tables","Tables"],["fixtures","Fixtures"],
+              ["results","Results"],["teams","Teams"],["honours","Trophies"]];
+
+function show(tab){
+  TABS.forEach(([id]) => {
+    document.getElementById("v-"+id).classList.toggle("on", id===tab);
+    const b = document.getElementById("t-"+id);
+    if(id===tab){ b.setAttribute("aria-current","page"); } else { b.removeAttribute("aria-current"); }
+  });
+  history.replaceState(null,"","#"+tab);
+  window.scrollTo({top:0,behavior:"instant"});
+}
+
+function renderAll(){
+  renderHome(); renderTables(); renderFixtures(); renderResults(); renderTeams(); renderHonours();
+}
+
+function init(){
+  const nav = document.getElementById("nav");
+  nav.innerHTML = TABS.map(([id,label]) =>
+    `<button id="t-${id}" type="button">${label}</button>`).join("");
+  TABS.forEach(([id]) => document.getElementById("t-"+id).addEventListener("click",()=>show(id)));
+
+  const sel = document.getElementById("season");
+  sel.innerHTML = Object.keys(SEASONS).map(k =>
+    `<option value="${k}">${k}${SEASONS[k].current?"":" (archive)"}</option>`).join("");
+  sel.value = SEASON_KEY;
+  sel.addEventListener("change", e => { SEASON_KEY = e.target.value; renderAll(); });
+
+  renderAll();
+  const start = location.hash.replace("#","");
+  show(TABS.some(([id])=>id===start) ? start : "home");
+  loadSheet();
+}
+
+/* Pulls the current season's results from a published Google Sheet if one is configured.
+   Expected header row: phase,round,date,sheet,teamA,teamB,shotsA,shotsB,endsA,endsB */
+async function loadSheet(){
+  const foot = document.getElementById("foot-status");
+  if(!SHEET_CSV_URL){
+    foot.textContent = "Results are stored in this page. To switch to the live results sheet, "
+      + "paste its published CSV link into SHEET_CSV_URL near the top of the file.";
+    return;
+  }
+  try{
+    const res = await fetch(SHEET_CSV_URL, {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const rows = parseCSV(await res.text());
+    const head = rows.shift().map(h => h.trim());
+    const need = ["phase","round","date","sheet","teamA","teamB","shotsA","shotsB","endsA","endsB"];
+    const idx = Object.fromEntries(need.map(n => [n, head.indexOf(n)]));
+    if(Object.values(idx).some(i => i < 0)) throw new Error("column names do not match");
+    const out = [];
+    for(const r of rows){
+      if(!r[idx.phase] || r[idx.shotsA] === "" || r[idx.shotsB] === "") continue;
+      out.push({
+        phase:r[idx.phase].trim(), round:+r[idx.round], date:r[idx.date].trim(), sheet:r[idx.sheet].trim(),
+        teamA:+r[idx.teamA], teamB:+r[idx.teamB], shotsA:+r[idx.shotsA], shotsB:+r[idx.shotsB],
+        endsA:+r[idx.endsA]||0, endsB:+r[idx.endsB]||0
+      });
+    }
+    const cur = Object.keys(SEASONS).find(k => SEASONS[k].current);
+    SEASONS[cur].results = out;
+    renderAll();
+    foot.textContent = "Results loaded from the club sheet at "
+      + new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})
+      + ". " + out.length + " matches.";
+  }catch(err){
+    foot.textContent = "The results sheet could not be read (" + err.message
+      + "). The tables below show the last results saved in this page.";
+  }
+}
+
+function parseCSV(text){
+  const rows = []; let row = [], cell = "", q = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(q){
+      if(c === '"' && text[i+1] === '"'){ cell += '"'; i++; }
+      else if(c === '"'){ q = false; }
+      else cell += c;
+    } else if(c === '"'){ q = true; }
+    else if(c === ","){ row.push(cell); cell = ""; }
+    else if(c === "\n"){ row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if(c !== "\r"){ cell += c; }
+  }
+  if(cell.length || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(v => v.trim() !== ""));
+}
+
+init();
+</script>
+</body>
+</html>
