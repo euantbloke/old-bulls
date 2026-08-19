@@ -186,6 +186,39 @@ footer .wrap{max-width:1080px;margin:0 auto}
 .print-btn{background:var(--granite);color:#fff;border:0;border-radius:7px;
   font:600 15px var(--body);padding:9px 16px;cursor:pointer}
 
+/* ---------- results entry ---------- */
+.enter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-top:6px}
+.rinkcard{border:1px solid var(--hairline);border-radius:11px;padding:14px 16px;background:var(--sheet)}
+.rinkcard .sheet-id{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--slate);margin-bottom:10px}
+.side{display:grid;grid-template-columns:1fr 74px 74px;gap:8px;align-items:center;margin-bottom:8px}
+.side .who{font-size:16.5px;font-weight:600;line-height:1.2}
+.side .who small{display:block;font-weight:400;color:var(--slate);font-size:13px}
+.side input{width:100%;font:700 19px var(--body);text-align:center;padding:9px 4px;
+  border:1px solid var(--hairline);border-radius:7px;background:#fff;color:var(--granite);
+  font-variant-numeric:tabular-nums}
+.side input:focus{outline:3px solid var(--gold);outline-offset:1px;border-color:var(--granite)}
+.side input.bad{border-color:var(--house-red);background:#fdf0ee}
+.colhead{display:grid;grid-template-columns:1fr 74px 74px;gap:8px;margin-bottom:4px}
+.colhead span{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--slate);text-align:center}
+.colhead span:first-child{text-align:left}
+.entry-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-top:18px}
+.field label{display:block;font-family:var(--display);font-size:11.5px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:4px}
+.field input,.field select{font:600 17px var(--body);padding:10px 12px;border:1px solid var(--hairline);
+  border-radius:7px;background:#fff;color:var(--granite)}
+.field input{width:150px}
+.btn-save{background:var(--house-red);color:#fff;border:0;border-radius:8px;
+  font:700 17px var(--display);letter-spacing:.04em;padding:12px 26px;cursor:pointer}
+.btn-save:hover{background:#a72c22}
+.btn-save:disabled{background:var(--slate);cursor:default}
+.msg{margin-top:14px;padding:13px 16px;border-radius:9px;font-size:16.5px;display:none}
+.msg.on{display:block}
+.msg.good{background:#e7f3ea;border:1px solid #a9cdb4;color:#1c5c37}
+.msg.bad{background:#fdf0ee;border:1px solid #e2b0aa;color:#8c261c}
+.msg.busy{background:#eef3f7;border:1px solid var(--hairline);color:var(--slate)}
+
 @media (max-width:600px){
   .match{grid-template-columns:22px 1fr auto 1fr;font-size:16px;gap:6px}
   th,td{padding:8px 5px}
@@ -231,6 +264,7 @@ footer .wrap{max-width:1080px;margin:0 auto}
   <section class="view" id="v-results"></section>
   <section class="view" id="v-teams"></section>
   <section class="view" id="v-honours"></section>
+  <section class="view" id="v-enter"></section>
 </main>
 
 <footer><div class="wrap">
@@ -245,7 +279,11 @@ footer .wrap{max-width:1080px;margin:0 auto}
    ============================================================
    Paste the "Publish to web" CSV link for the results sheet here.
    Leave it empty and the page uses the results built in below.   */
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8du6zcTbhy8DJ4umYDm49CjybqxGDWbz3Ry1XNorr-ZT1W3RUIgMEL6mRxbq-u0YnMcXGnK5ybLT3/pub?output=csv";
+const SHEET_CSV_URL = "";
+
+/* Paste the Apps Script web app /exec link here so results can be entered
+   on the site. Leave it empty and the entry page explains what is missing. */
+const SAVE_URL = "";
 
 /* ============================================================
    2. SEASON DATA
@@ -760,10 +798,200 @@ function renderHonours(){
 }
 
 /* ============================================================
+   5. ENTERING RESULTS
+   ============================================================ */
+let ENTRY_ROUND = null;   // {phase, round}
+let ENTRY_CODE  = "";     // held for this visit only, never stored
+
+function allRounds(){
+  const out = [];
+  for(const phase of ORDER){
+    const ph = S().phases[phase];
+    ph.dates.forEach((d,i) => out.push({phase, round:i+1, date:d, label:ph.label}));
+  }
+  return out;
+}
+
+function renderEnter(){
+  const host = document.getElementById("v-enter");
+  if(!S().current){
+    host.innerHTML = `<p class="eyebrow">Results entry</p><h2>Enter Results</h2>
+      <div class="empty">You are viewing the ${esc(SEASON_KEY)} archive. Switch the season
+      selector back to the current season to enter results.</div>`;
+    return;
+  }
+
+  const rounds = allRounds();
+  if(!ENTRY_ROUND){
+    const nx = nextRound();
+    ENTRY_ROUND = nx ? {phase:nx.phase, round:nx.round}
+                     : {phase:rounds[rounds.length-1].phase, round:rounds[rounds.length-1].round};
+  }
+  const cur = rounds.find(r => r.phase===ENTRY_ROUND.phase && r.round===ENTRY_ROUND.round);
+  const ph  = S().phases[cur.phase];
+
+  const options = rounds.map(r => {
+    const done = roundPlayed(r.phase, r.round) ? " (entered)" : "";
+    return `<option value="${r.phase}|${r.round}" ${r.phase===cur.phase && r.round===cur.round ? "selected":""}
+      >${esc(r.label)}, round ${r.round}, ${fmtShort(r.date)}${done}</option>`;
+  }).join("");
+
+  let cards, blocked = "";
+  const unresolved = ph.fixtures[cur.round].some(fx => {
+    const [a,b] = fixtureTeams(S(), cur.phase, fx);
+    return !a || !b;
+  });
+
+  if(unresolved){
+    blocked = `<div class="empty">The playoff draw is not settled yet. Enter all six league
+      rounds first and the team numbers for this night will fill in on their own.</div>`;
+    cards = "";
+  } else {
+    cards = ph.fixtures[cur.round].map(fx => {
+      const [a,b] = fixtureTeams(S(), cur.phase, fx);
+      const ex = resultFor(cur.phase, cur.round, a, b);
+      const swap = ex && ex.teamA !== a;
+      const val = (side, field) => {
+        if(!ex) return "";
+        const key = field + (swap ? (side==="A"?"B":"A") : side);
+        return ex[key] ?? "";
+      };
+      const row = (side, team) => `
+        <div class="side">
+          <div class="who">Team ${team}<small>${esc(skipOf(team))}</small></div>
+          <input type="number" inputmode="numeric" min="0" max="40" step="1"
+            aria-label="Shots for team ${team}" data-k="shots${side}" value="${val(side,"shots")}">
+          <input type="number" inputmode="numeric" min="0" max="16" step="1"
+            aria-label="Ends won by team ${team}" data-k="ends${side}" value="${val(side,"ends")}">
+        </div>`;
+      return `<div class="rinkcard" data-sheet="${fx[0]}" data-a="${a}" data-b="${b}">
+        <div class="sheet-id">Sheet ${fx[0]}</div>
+        <div class="colhead"><span></span><span>Shots</span><span>Ends</span></div>
+        ${row("A",a)}${row("B",b)}
+      </div>`;
+    }).join("");
+  }
+
+  host.innerHTML = `
+    <p class="eyebrow">Results entry</p><h2>Enter Results</h2>
+    <p class="sub">Pick the night, type the shots and ends for each rink, then save.
+      Everything else on the site updates itself.</p>
+    <div class="card">
+      <div class="field" style="max-width:520px">
+        <label for="round-pick">Which night</label>
+        <select id="round-pick" style="width:100%">${options}</select>
+      </div>
+      ${blocked}
+      <div class="enter-grid">${cards}</div>
+      ${cards ? `
+      <div class="entry-bar">
+        <div class="field">
+          <label for="entry-code">Club code</label>
+          <input id="entry-code" type="password" inputmode="numeric"
+                 autocomplete="off" value="${esc(ENTRY_CODE)}">
+        </div>
+        <button class="btn-save" id="btn-save" type="button">Save results</button>
+      </div>` : ""}
+      <div class="msg" id="entry-msg" role="status" aria-live="polite"></div>
+      <p class="foot-note">Leave a rink blank if it was not played. To correct a score, type the
+        right one over the top and save again. Ends can be left empty if you do not have them.</p>
+    </div>`;
+
+  document.getElementById("round-pick").addEventListener("change", e => {
+    const [phase, round] = e.target.value.split("|");
+    ENTRY_ROUND = {phase, round:+round};
+    renderEnter();
+  });
+  const btn = document.getElementById("btn-save");
+  if(btn) btn.addEventListener("click", saveResults);
+}
+
+function entryMsg(kind, text){
+  const el = document.getElementById("entry-msg");
+  if(!el) return;
+  el.className = "msg on " + kind;
+  el.textContent = text;
+}
+
+async function saveResults(){
+  const codeEl = document.getElementById("entry-code");
+  ENTRY_CODE = codeEl.value.trim();
+  if(!ENTRY_CODE){ entryMsg("bad","Enter the club code before saving."); codeEl.focus(); return; }
+  if(!SAVE_URL){
+    entryMsg("bad","Saving is not switched on yet. The Apps Script web app link needs to go into "
+      + "SAVE_URL near the top of index.html. See the README.");
+    return;
+  }
+
+  const cards = [...document.querySelectorAll(".rinkcard")];
+  const matches = [];
+  let bad = false;
+  document.querySelectorAll(".side input").forEach(i => i.classList.remove("bad"));
+
+  for(const card of cards){
+    const get = k => card.querySelector(`[data-k="${k}"]`);
+    const raw = k => get(k).value.trim();
+    const sa = raw("shotsA"), sb = raw("shotsB");
+    if(sa === "" && sb === ""){
+      matches.push({phase:ENTRY_ROUND.phase, round:ENTRY_ROUND.round, sheet:card.dataset.sheet,
+                    teamA:+card.dataset.a, teamB:+card.dataset.b,
+                    shotsA:"", shotsB:"", endsA:"", endsB:""});
+      continue;
+    }
+    if(sa === "" || sb === ""){
+      [get("shotsA"),get("shotsB")].forEach(i => { if(!i.value.trim()) i.classList.add("bad"); });
+      bad = true; continue;
+    }
+    const nums = {shotsA:+sa, shotsB:+sb};
+    for(const k of ["shotsA","shotsB"]){
+      if(!Number.isInteger(nums[k]) || nums[k] < 0 || nums[k] > 40){ get(k).classList.add("bad"); bad = true; }
+    }
+    const ea = raw("endsA"), eb = raw("endsB");
+    for(const [k,v] of [["endsA",ea],["endsB",eb]]){
+      if(v !== "" && (!Number.isInteger(+v) || +v < 0 || +v > 16)){ get(k).classList.add("bad"); bad = true; }
+    }
+    matches.push({phase:ENTRY_ROUND.phase, round:ENTRY_ROUND.round, sheet:card.dataset.sheet,
+                  teamA:+card.dataset.a, teamB:+card.dataset.b,
+                  shotsA:nums.shotsA, shotsB:nums.shotsB,
+                  endsA:ea === "" ? "" : +ea, endsB:eb === "" ? "" : +eb});
+  }
+  if(bad){ entryMsg("bad","Check the boxes outlined in red. Shots go 0 to 40, ends 0 to 16, and each rink needs both scores."); return; }
+  if(!matches.some(m => m.shotsA !== "")){ entryMsg("bad","Nothing to save. Enter at least one rink."); return; }
+
+  const btn = document.getElementById("btn-save");
+  btn.disabled = true;
+  entryMsg("busy","Saving to the club sheet...");
+
+  try{
+    /* text/plain keeps this a simple request, so the browser does not send a
+       preflight that Apps Script cannot answer. */
+    const res = await fetch(SAVE_URL, {
+      method:"POST", redirect:"follow",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({code:ENTRY_CODE, season:SEASON_KEY, matches})
+    });
+    const out = await res.json();
+    if(!out.ok) throw new Error(out.error || "the sheet rejected the update");
+    const n = matches.filter(m => m.shotsA !== "").length;
+    entryMsg("good", `Saved. ${n} ${n===1?"rink":"rinks"} written to the sheet at ${out.at}. `
+      + `The tables are updating now.`);
+    await loadSheet({quiet:true});
+    renderEnter();
+  }catch(err){
+    entryMsg("bad","Could not save: " + err.message
+      + ". Nothing has been changed. Check the code, or enter the scores straight into the sheet.");
+  }finally{
+    const b = document.getElementById("btn-save");
+    if(b) b.disabled = false;
+  }
+}
+
+/* ============================================================
    5. NAVIGATION AND OPTIONAL LIVE SHEET
    ============================================================ */
 const TABS = [["home","This week"],["tables","Tables"],["fixtures","Fixtures"],
-              ["results","Results"],["teams","Teams"],["honours","Trophies"]];
+              ["results","Results"],["teams","Teams"],["honours","Trophies"],
+              ["enter","Enter results"]];
 
 function show(tab){
   TABS.forEach(([id]) => {
@@ -777,6 +1005,7 @@ function show(tab){
 
 function renderAll(){
   renderHome(); renderTables(); renderFixtures(); renderResults(); renderTeams(); renderHonours();
+  renderEnter();
 }
 
 function init(){
@@ -799,11 +1028,11 @@ function init(){
 
 /* Pulls the current season's results from a published Google Sheet if one is configured.
    Expected header row: phase,round,date,sheet,teamA,teamB,shotsA,shotsB,endsA,endsB */
-async function loadSheet(){
+async function loadSheet(opts={}){
   const foot = document.getElementById("foot-status");
   if(!SHEET_CSV_URL){
     foot.textContent = "Results are stored in this page. To switch to the live results sheet, "
-      + "paste its published CSV link into SHEET_CSV_URL near the top of the file.";
+      + "paste its link into SHEET_CSV_URL near the top of the file.";
     return;
   }
   try{
@@ -826,6 +1055,7 @@ async function loadSheet(){
     const cur = Object.keys(SEASONS).find(k => SEASONS[k].current);
     SEASONS[cur].results = out;
     renderAll();
+    if(opts.quiet) show("enter");
     foot.textContent = "Results loaded from the club sheet at "
       + new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})
       + ". " + out.length + " matches.";
