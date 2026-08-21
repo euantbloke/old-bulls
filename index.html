@@ -97,8 +97,10 @@ h3{font-size:19px;font-weight:700;margin:0 0 2px;letter-spacing:-.005em}
 .board-head .eyebrow{color:#8fa8b8}
 .board-head h2{margin:0;color:#fff}
 .board-head .when{color:var(--gold);font-weight:700;font-size:18px;margin-top:4px}
-.rinks{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:1px;
+.rinks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;
   background:#2b3d49;margin-top:18px;position:relative;z-index:1}
+@media (max-width:940px){.rinks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.rinks{grid-template-columns:1fr}}
 .rink{background:var(--granite);padding:16px var(--pad)}
 .rink .sheet-id{
   font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.16em;
@@ -117,14 +119,18 @@ h3{font-size:19px;font-weight:700;margin:0 0 2px;letter-spacing:-.005em}
   padding:20px var(--pad);margin-bottom:22px}
 .card > .eyebrow:first-child{margin-top:0}
 .table-wrap{overflow-x:auto;margin:0 calc(var(--pad) * -1);padding:0 var(--pad)}
-table{border-collapse:collapse;width:100%;min-width:560px}
+table{border-collapse:collapse;width:100%;min-width:640px;table-layout:fixed}
+/* every column the same width except the skip's name */
+th,td{width:7.1%}
+th:nth-child(3),td:nth-child(3){width:22%}
 caption{text-align:left;font-family:var(--display);font-weight:700;font-size:19px;
   text-transform:uppercase;letter-spacing:.01em;padding-bottom:2px}
-th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--hairline)}
+th,td{padding:9px 8px;text-align:center;border-bottom:1px solid var(--hairline)}
 th{font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
   color:var(--slate);border-bottom:2px solid var(--granite);white-space:nowrap}
-th:nth-child(-n+3),td:nth-child(-n+3){text-align:left}
-td.pos{font-family:var(--display);font-weight:700;width:34px;color:var(--slate)}
+/* only the skip's name is ranged left; every number is centred under its heading */
+th:nth-child(3),td:nth-child(3){text-align:left}
+td.pos{font-family:var(--display);font-weight:700;width:44px;color:var(--slate);white-space:nowrap}
 td.tno{font-family:var(--display);font-weight:800}
 td.skip{font-weight:600;white-space:nowrap}
 td.pts{font-family:var(--display);font-weight:800;font-size:18px}
@@ -194,7 +200,8 @@ footer .wrap{max-width:1080px;margin:0 auto}
   font:600 15px var(--body);padding:9px 16px;cursor:pointer}
 
 /* ---------- results entry ---------- */
-.enter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-top:6px}
+.enter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:6px}
+@media (max-width:660px){.enter-grid{grid-template-columns:1fr}}
 .rinkcard{border:1px solid var(--hairline);border-radius:11px;padding:14px 16px;background:var(--sheet)}
 .rinkcard .sheet-id{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.16em;
   text-transform:uppercase;color:var(--slate);margin-bottom:10px}
@@ -555,7 +562,7 @@ function tableHTML(caption, rows, opts={}){
     <caption>${esc(caption)}</caption>
     <thead><tr>
       <th>Pos</th><th>Team</th><th>Skip</th><th>P</th><th>W</th><th>L</th><th>D</th>
-      <th>For</th><th>Ag</th><th>Ends</th><th>Shot diff</th><th>Pts</th>
+      <th>For</th><th>Ag</th><th>Ends</th><th>Diff</th><th>Pts</th>
     </tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
