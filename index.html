@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Old Bulls | Raith and Abbotshall Curling Club</title>
 <meta name="description" content="League tables, fixtures and results for the Old Bulls senior league at Raith and Abbotshall Curling Club, Kirkcaldy.">
+<link rel="icon" href="assets/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<meta property="og:title" content="Old Bulls | Raith and Abbotshall Curling Club">
+<meta property="og:description" content="League tables, fixtures and results for the Old Bulls senior league.">
+<meta property="og:image" content="assets/social-preview.png">
+<meta name="theme-color" content="#16232C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -36,7 +42,8 @@ a{color:var(--house-blue)}
 /* ---------- masthead ---------- */
 .masthead{background:var(--granite);color:#fff;padding:var(--pad) var(--pad) 0}
 .mast-inner{max-width:1080px;margin:0 auto;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
-.house-mark{flex:0 0 auto}
+.club-badge{flex:0 0 auto;width:96px;height:auto;display:block}
+@media (max-width:600px){.club-badge{width:68px}}
 .mast-text h1{
   margin:0;font-size:clamp(30px,7vw,50px);font-weight:800;
   letter-spacing:-.02em;text-transform:uppercase;line-height:.95;
@@ -249,12 +256,10 @@ footer .wrap{max-width:1080px;margin:0 auto}
 
 <header class="masthead">
   <div class="mast-inner">
-    <svg class="house-mark" width="58" height="58" viewBox="0 0 100 100" aria-hidden="true">
-      <circle cx="50" cy="50" r="48" fill="#2a6b9b"/>
-      <circle cx="50" cy="50" r="34" fill="#fff"/>
-      <circle cx="50" cy="50" r="20" fill="#c1372c"/>
-      <circle cx="50" cy="50" r="7" fill="#fff"/>
-    </svg>
+    <img class="club-badge" src="assets/badge-400.png"
+         srcset="assets/badge-400.png 400w, assets/badge-800.png 800w"
+         sizes="(max-width:600px) 68px, 96px"
+         alt="Raith and Abbotshall Curling Club badge" width="1328" height="1175">
     <div class="mast-text">
       <h1>Old Bulls</h1>
       <p>Raith and Abbotshall Curling Club</p>
