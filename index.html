@@ -1025,8 +1025,8 @@ function renderEnter(){
 function entryMsg(kind, text){
   const el = document.getElementById("entry-msg");
   if(!el) return;
-  el.className = "msg on " + kind;
-  el.textContent = text;
+  el.textContent = text || "";
+  el.className = text ? ("msg on " + kind) : "msg";
 }
 
 async function saveResults(){
@@ -1268,7 +1268,11 @@ function renderSetup(){
       b.style.color = "#fff";
       setupMsg("busy", `Press Confirm delete again to remove ${k} and everything in it. `
         + `The button goes back to normal in a few seconds if you leave it.`);
-      b.dataset.timer = setTimeout(() => { disarmDelete(b); setupMsg("busy",""); }, 8000);
+      b.dataset.timer = setTimeout(() => {
+        disarmDelete(b);
+        setupMsg("busy", `Nothing was deleted. Press Delete beside ${k} twice in a row if you `
+          + `meant to remove it.`);
+      }, 15000);
     }));
 }
 
@@ -1349,8 +1353,9 @@ function manageCard(){
 
 function setupMsg(kind, text){
   const el = document.getElementById("setup-msg");
-  el.className = "msg on " + kind;
-  el.textContent = text;
+  if(!el) return;
+  el.textContent = text || "";
+  el.className = text ? ("msg on " + kind) : "msg";
 }
 
 async function createSeason(){
@@ -1623,7 +1628,7 @@ async function loadSheet(opts={}){
     const cur = Object.keys(SEASONS).find(k => SEASONS[k].current);
     SEASONS[cur].results = out;
     renderAll();
-    if(opts.quiet) show("enter");
+    if(opts.quiet) show(opts.tab || "enter");   // stay on the page the user was using
     foot.textContent = out.length + " matches loaded from the club sheet at "
       + new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) + ".";
   }catch(err){
@@ -1653,3 +1658,4 @@ init();
 </script>
 </body>
 </html>
+
