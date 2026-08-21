@@ -1428,23 +1428,27 @@ async function createSeason(){
    The Seasons and Teams tabs hold the calendar and the rosters, so a
    new season can be set up without anyone editing this file. */
 
+/* One rule for "has this match actually been played", used by every path that
+   reads the sheet. A row exists for every fixture of the season from the day it
+   is set up, so an unplayed row must never be counted as a nil-nil draw. */
+const cellNum = v => { const s = String(v ?? "").trim();
+                       return s !== "" && Number.isFinite(+s) ? +s : null; };
+function isPlayedRow(r){
+  const a = cellNum(r.shotsA), b = cellNum(r.shotsB);
+  return a !== null && b !== null && (a + b) > 0
+         && cellNum(r.teamA) > 0 && cellNum(r.teamB) > 0;
+}
+const rowToMatch = r => ({phase:String(r.phase).trim(), round:+r.round, date:r.date,
+                          sheet:String(r.sheet).trim(), teamA:+r.teamA, teamB:+r.teamB,
+                          shotsA:+r.shotsA, shotsB:+r.shotsB,
+                          endsA:+r.endsA || 0, endsB:+r.endsB || 0});
+
 function seasonsFromFeed(data){
   const out = {};
   const nights = data.seasons || [], roster = data.teams || [], res = data.results || [];
   if(!nights.length) return null;
 
-  const toMatch = r => ({phase:r.phase, round:+r.round, date:r.date, sheet:r.sheet,
-                         teamA:+r.teamA, teamB:+r.teamB,
-                         shotsA:+r.shotsA, shotsB:+r.shotsB,
-                         endsA:+r.endsA || 0, endsB:+r.endsB || 0});
-  const num = v => { const s = String(v ?? "").trim();
-                     return s !== "" && Number.isFinite(+s) ? +s : null; };
-  /* A match counts as played when both teams are known and at least one shot was
-     scored. 14 to 0 is a real curling result, but 0 to 0 is an empty row. */
-  const isPlayed = r => num(r.shotsA) !== null && num(r.shotsB) !== null
-                        && num(r.teamA) > 0 && num(r.teamB) > 0
-                        && (num(r.shotsA) + num(r.shotsB)) > 0;
-  const played  = key => res.filter(r => r.season === key && isPlayed(r)).map(toMatch);
+  const played   = key => res.filter(r => r.season === key && isPlayedRow(r)).map(rowToMatch);
   const fixtures = key => res.filter(r => r.season === key).length;
 
   const names = [...new Set(nights.map(r => r.season))];
@@ -1598,8 +1602,8 @@ async function loadSheet(opts={}){
           + ". " + n + " matches in " + SEASON_KEY + ".";
         return;
       }
-      out = data.results.map(r => ({...r, round:+r.round, teamA:+r.teamA, teamB:+r.teamB,
-        shotsA:+r.shotsA, shotsB:+r.shotsB, endsA:+r.endsA||0, endsB:+r.endsB||0}));
+      // same rule as the season builder: fixture rows are not results
+      out = data.results.filter(isPlayedRow).map(rowToMatch);
     } else {
       if(/^\s*</.test(text)) throw new Error("a web page came back instead of data, "
         + "which usually means the sheet is not shared as 'Anyone with the link'");
@@ -1610,17 +1614,10 @@ async function loadSheet(opts={}){
       const missing = need.filter(n => idx[n] < 0);
       if(missing.length) throw new Error("the columns " + missing.join(", ")
         + " were not found. The first line received was: " + (head.join(",").slice(0,80) || "(empty)"));
-      out = [];
-      for(const r of rows){
-        if(!r[idx.phase] || r[idx.shotsA] === "" || r[idx.shotsB] === "") continue;
-        if(!r[idx.teamA] || !r[idx.teamB]) continue;
-        out.push({
-          phase:r[idx.phase].trim(), round:+r[idx.round], date:r[idx.date].trim(),
-          sheet:r[idx.sheet].trim(), teamA:+r[idx.teamA], teamB:+r[idx.teamB],
-          shotsA:+r[idx.shotsA], shotsB:+r[idx.shotsB],
-          endsA:+r[idx.endsA]||0, endsB:+r[idx.endsB]||0
-        });
-      }
+      out = rows
+        .map(r => Object.fromEntries(need.map(n => [n, r[idx[n]]])))
+        .filter(r => r.phase && isPlayedRow(r))
+        .map(rowToMatch);
     }
 
     const cur = Object.keys(SEASONS).find(k => SEASONS[k].current);
