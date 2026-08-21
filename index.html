@@ -53,6 +53,21 @@ a{color:var(--house-blue)}
 .night-row button{background:none;border:1px solid var(--hairline);border-radius:6px;
   color:var(--slate);font:700 15px var(--body);cursor:pointer;padding:6px 0}
 .night-row button:hover{border-color:var(--house-red);color:var(--house-red)}
+.extra-row{display:grid;grid-template-columns:150px 1fr 96px 1fr 1fr 40px;gap:8px;
+  align-items:center;padding:6px 0;border-bottom:1px solid var(--hairline)}
+.extra-row:last-of-type{border-bottom:0}
+.extra-row input,.extra-row select{font:400 16px var(--body);padding:8px 9px;width:100%;
+  border:1px solid var(--hairline);border-radius:6px;background:#fff;color:var(--granite)}
+.extra-row button{background:none;border:1px solid var(--hairline);border-radius:6px;
+  color:var(--house-red);font:700 17px var(--body);cursor:pointer;padding:6px 0}
+.extra-head{display:grid;grid-template-columns:150px 1fr 96px 1fr 1fr 40px;gap:8px;margin-bottom:4px}
+.extra-head span{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--slate)}
+@media (max-width:760px){
+  .extra-head{display:none}
+  .extra-row{grid-template-columns:1fr 1fr;padding:12px 0}
+  .extra-row button{grid-column:2}
+}
 .setup-teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 @media (max-width:660px){.setup-teams{grid-template-columns:1fr}}
 .setup-team{border:1px solid var(--hairline);border-radius:11px;padding:12px 14px;background:var(--sheet)}
@@ -324,15 +339,15 @@ footer .wrap{max-width:1080px;margin:0 auto}
 /* ============================================================
    1. CONFIGURATION
    ============================================================ */
-/* Where the site READS results from.
-   This is the "Publish to web" CSV link. It works, but Google caches it for a
-   few minutes, so scores will not appear the instant they are saved.
-   Once the Apps Script has been redeployed with the newer code, empty this
-   line and the site will read through the script instead, which is instant. */
+/* Leave this EMPTY. The site then reads through the Apps Script below, which is
+   live and carries the seasons and team lists as well as the results.
+   It exists only as an escape hatch: if Apps Script is ever unavailable, a
+   published CSV link pasted here will keep the tables working, though the
+   season setup page will not have anything to read. */
 const SHEET_CSV_URL = "";
 
 /* Where the site SAVES results to. The Apps Script web app /exec link. */
-const SAVE_URL = "https://script.google.com/macros/s/AKfycbzMQ7qjvgoSnlhnNGhbCKkCHY_V-xambQy5on8tAuzwfQpILMHcBE0k5AxG5XrBxdFfHg/exec";
+const SAVE_URL = "https://script.google.com/macros/s/AKfycbyUODZg1GkAx7r53e7I3gY7txQ8Yvft_Z1OwYwoZ0gnuAP5tplsMReDRJrvk4jNArR33g/exec";
 
 /* ============================================================
    2. SEASON DATA
@@ -469,6 +484,10 @@ SEASONS["2025/26"] = {
 const ARCHIVE_2526 = [["l",1,"2025-09-16","B",1,2,11,6,4,4],["l",1,"2025-09-16","C",3,4,3,11,3,5],["l",1,"2025-09-16","D",5,6,5,8,3,5],["l",1,"2025-09-16","E",7,8,9,8,4,4],["l",2,"2025-09-23","B",5,7,6,7,4,4],["l",2,"2025-09-23","C",6,8,10,4,6,3],["l",2,"2025-09-23","D",1,3,9,3,5,3],["l",2,"2025-09-23","E",2,4,7,6,4,4],["l",3,"2025-09-30","B",6,7,3,12,3,6],["l",3,"2025-09-30","C",1,4,8,8,5,3],["l",3,"2025-09-30","D",5,8,10,6,6,3],["l",3,"2025-09-30","E",2,3,9,2,6,2],["l",4,"2025-10-07","B",1,2,7,5,5,3],["l",4,"2025-10-07","C",3,4,4,7,4,4],["l",4,"2025-10-07","D",5,6,4,7,3,4],["l",4,"2025-10-07","E",7,8,11,4,6,3],["l",5,"2025-10-28","B",5,7,7,13,5,5],["l",5,"2025-10-28","C",6,8,4,9,3,4],["l",5,"2025-10-28","D",1,4,5,11,2,6],["l",5,"2025-10-28","E",2,3,5,8,4,4],["l",6,"2025-11-04","B",6,7,10,8,4,3],["l",6,"2025-11-04","C",1,3,4,10,3,5],["l",6,"2025-11-04","D",5,8,6,8,4,4],["l",6,"2025-11-04","E",2,4,6,5,4,4],["p",1,"2025-11-11","B",4,6,8,1,7,1],["p",1,"2025-11-11","C",1,7,8,6,5,3],["p",1,"2025-11-11","D",2,8,6,7,4,3],["p",1,"2025-11-11","E",3,5,12,2,6,3],["p",2,"2025-11-18","B",2,5,8,8,4,4],["p",2,"2025-11-18","C",3,8,10,5,5,3],["p",2,"2025-11-18","D",4,7,8,9,4,4],["p",2,"2025-11-18","E",1,6,11,8,4,4],["p",3,"2025-11-25","B",6,7,5,6,4,4],["p",3,"2025-11-25","C",1,4,0,14,0,8],["p",3,"2025-11-25","D",5,8,7,7,6,1],["p",3,"2025-11-25","E",2,3,3,12,3,6],["f",1,"2025-12-02","B",4,6,2,10,2,6],["f",1,"2025-12-02","C",2,5,8,6,6,2],["f",1,"2025-12-02","D",7,8,7,10,3,5],["f",1,"2025-12-02","E",1,3,1,14,1,7],["f",2,"2025-12-09","B",1,5,3,7,3,5],["f",2,"2025-12-09","C",6,8,9,2,6,2],["f",2,"2025-12-09","D",2,7,0,12,0,8],["f",2,"2025-12-09","E",3,4,14,7,5,3],["f",3,"2025-12-16","B",4,7,3,15,2,6],["f",3,"2025-12-16","C",1,8,3,11,3,5],["f",3,"2025-12-16","D",3,5,6,7,4,4],["f",3,"2025-12-16","E",2,6,2,10,1,7],["f",4,"2026-01-06","B",3,6,12,3,6,2],["f",4,"2026-01-06","C",5,8,9,7,5,3],["f",4,"2026-01-06","D",2,4,9,8,5,3],["f",4,"2026-01-06","E",1,7,5,4,4,4],["f",5,"2026-01-13","B",6,7,4,15,3,5],["f",5,"2026-01-13","C",1,2,7,11,3,5],["f",5,"2026-01-13","D",4,5,8,2,6,2],["f",5,"2026-01-13","E",3,8,18,2,6,2],["f",6,"2026-01-20","B",1,4,7,6,3,5],["f",6,"2026-01-20","C",2,8,10,5,4,4],["f",6,"2026-01-20","D",3,7,7,6,5,3],["f",6,"2026-01-20","E",5,6,3,8,2,6],["f",7,"2026-01-27","B",5,7,10,11,4,4],["f",7,"2026-01-27","C",4,8,6,6,4,4],["f",7,"2026-01-27","D",2,3,6,7,4,4],["f",7,"2026-01-27","E",1,6,6,12,3,5],["f",8,"2026-02-03","B",4,6,14,3,6,2],["f",8,"2026-02-03","C",2,5,3,6,3,5],["f",8,"2026-02-03","D",7,8,2,9,2,6],["f",8,"2026-02-03","E",1,3,2,13,2,6],["f",9,"2026-02-10","B",1,5,6,4,5,3],["f",9,"2026-02-10","C",6,8,3,5,3,5],["f",9,"2026-02-10","D",2,7,3,6,3,5],["f",9,"2026-02-10","E",3,4,10,5,5,3],["f",10,"2026-02-17","B",4,7,7,4,5,3],["f",10,"2026-02-17","C",1,8,7,8,5,3],["f",10,"2026-02-17","D",3,5,8,8,4,4],["f",10,"2026-02-17","E",2,6,4,9,2,6],["f",11,"2026-02-24","B",3,6,11,8,5,3],["f",11,"2026-02-24","C",5,8,9,1,7,1],["f",11,"2026-02-24","D",2,4,9,3,6,2],["f",11,"2026-02-24","E",1,7,4,12,3,5],["f",12,"2026-03-03","B",6,7,6,5,4,4],["f",12,"2026-03-03","C",1,2,7,8,3,5],["f",12,"2026-03-03","D",4,5,6,8,4,4],["f",12,"2026-03-03","E",3,8,6,8,4,4],["f",13,"2026-03-10","B",1,4,8,6,5,3],["f",13,"2026-03-10","C",2,8,11,2,6,2],["f",13,"2026-03-10","D",3,7,4,12,2,6],["f",13,"2026-03-10","E",5,6,5,5,3,5],["f",14,"2026-03-17","B",5,7,6,6,4,4],["f",14,"2026-03-17","C",4,8,2,10,2,6],["f",14,"2026-03-17","D",2,3,4,8,4,4],["f",14,"2026-03-17","E",1,6,5,6,4,4]];
 
 const PHASE_KEY = {l:"league", p:"playoff", f:"full"};
+/* A pristine copy of the seasons defined in this file. Every read of the sheet
+   is rebuilt from this, so a season deleted from the sheet disappears here too
+   instead of lingering from the previous read. */
+let BUILTIN = null;
 SEASONS["2025/26"].results = ARCHIVE_2526.map(r => ({
   phase:PHASE_KEY[r[0]], round:r[1], date:r[2], sheet:r[3],
   teamA:r[4], teamB:r[5], shotsA:r[6], shotsB:r[7], endsA:r[8], endsB:r[9]
@@ -515,6 +534,8 @@ const TOTAL_NIGHTS = ORDER_PHASES.reduce((n,p) => n + TEMPLATE[p].rounds, 0);
 /* ============================================================
    4. TABLE ENGINE
    ============================================================ */
+BUILTIN = JSON.parse(JSON.stringify(SEASONS));
+
 const TROPHIES = {
   league:  {1:{name:"League 1", teams:[1,2,3,4]}, 2:{name:"League 2", teams:[5,6,7,8]}},
   playoff: {bell:{name:"Duncan Bell Trophy", terms:"Playoff of the league winners and runners up"},
@@ -765,10 +786,17 @@ function renderFixtures(){
         <th>Rd</th><th>Date</th><th>Sheet B</th><th>Sheet C</th><th>Sheet D</th><th>Sheet E</th>
       </tr></thead><tbody>${rows}</tbody></table></div></div>`;
   }
-  html += `<div class="card"><p class="eyebrow">Away and friendly matches</p>
-    <ul class="away">${S().away.map(a =>
-      `<li><b>${esc(a.when)}</b>${esc(a.who)}. ${esc(a.where)}.${a.note ? " " + esc(a.note) + "." : ""}</li>`
-    ).join("")}</ul></div>`;
+  const away = [...S().away].sort((a,b) => String(a.when).localeCompare(String(b.when)));
+  html += `<div class="card"><p class="eyebrow">Home and away matches</p>
+    ${away.length ? `<ul class="away">${away.map(a => {
+      const when = /^\d{4}-\d{2}-\d{2}$/.test(String(a.when)) ? fmtDate(a.when) : a.when;
+      const tag = a.homeAway ? `<span class="badge" style="background:${
+        String(a.homeAway).toLowerCase() === "home" ? "var(--house-blue)" : "var(--slate)"
+      }">${esc(a.homeAway)}</span>` : "";
+      return `<li><b>${esc(when)}${tag}</b>${esc(a.who)}${a.where ? ". " + esc(a.where) : ""}.${
+        a.note ? " " + esc(a.note) + "." : ""}</li>`;
+    }).join("")}</ul>`
+    : `<p style="margin:0;color:var(--slate)">None arranged yet.</p>`}</div>`;
   document.getElementById("v-fixtures").innerHTML = html;
 }
 
@@ -1236,6 +1264,7 @@ function renderSetup(){
         time comes.</p>
     </div>
 
+    ${extrasCard()}
     ${manageCard()}`;
 
   host.querySelectorAll("[data-night]").forEach(inp => {
@@ -1254,6 +1283,7 @@ function renderSetup(){
     renderSetup(); show("setup");
   });
   document.getElementById("setup-go").addEventListener("click", createSeason);
+  wireExtras(host);
 
   host.querySelectorAll("[data-make]").forEach(b =>
     b.addEventListener("click", () => seasonAction("setCurrent", b.dataset.make)));
@@ -1316,6 +1346,114 @@ async function seasonAction(action, season){
     setupMsg("good", done);   // the reload rebuilds the page, so say it afterwards
   }catch(err){
     setupMsg("bad", `Could not do that: ${err.message}. Nothing has been changed.`);
+  }
+}
+
+let EXTRAS = null;        // the home and away list being edited
+let EXTRAS_SEASON = null; // which season it belongs to
+
+function blankExtra(){ return {when:"", who:"", where:"", homeAway:"Away", note:""}; }
+
+function extrasCard(){
+  if(EXTRAS_SEASON !== SEASON_KEY || !EXTRAS){
+    EXTRAS_SEASON = SEASON_KEY;
+    EXTRAS = (S().away || []).map(a => ({
+      when: /^\d{4}-\d{2}-\d{2}$/.test(String(a.when)) ? a.when : "",
+      who: a.who || "", where: a.where || "",
+      homeAway: a.homeAway || "Away", note: a.note || ""
+    }));
+    if(!EXTRAS.length) EXTRAS.push(blankExtra());
+  }
+  const rows = EXTRAS.map((e,i) => `
+    <div class="extra-row" data-extra="${i}">
+      <input type="date" value="${esc(e.when)}" data-f="when" aria-label="Date">
+      <input type="text" value="${esc(e.who)}" data-f="who" placeholder="Opponent" aria-label="Opponent">
+      <select data-f="homeAway" aria-label="Home or away">
+        <option ${e.homeAway === "Home" ? "selected" : ""}>Home</option>
+        <option ${e.homeAway !== "Home" ? "selected" : ""}>Away</option>
+      </select>
+      <input type="text" value="${esc(e.where)}" data-f="where" placeholder="Venue, rinks, time" aria-label="Venue">
+      <input type="text" value="${esc(e.note)}" data-f="note" placeholder="Notes" aria-label="Notes">
+      <button type="button" data-rmextra="${i}" title="Remove this match">&times;</button>
+    </div>`).join("");
+
+  return `<div class="card">
+    <p class="eyebrow">Home and away matches</p>
+    <h3 style="margin-bottom:10px">Friendlies for ${esc(SEASON_KEY)}</h3>
+    <div class="extra-head"><span>Date</span><span>Opponent</span><span>Home or away</span>
+      <span>Venue</span><span>Notes</span><span></span></div>
+    ${rows}
+    <div class="entry-bar">
+      <button class="btn-clear" id="extra-add" type="button" style="padding:11px 16px">Add a match</button>
+      <div class="field">
+        <label for="extra-code">Club code</label>
+        <input id="extra-code" type="password" inputmode="numeric" autocomplete="off" value="${esc(ENTRY_CODE)}">
+      </div>
+      <button class="btn-save" id="extra-save" type="button">Save matches</button>
+    </div>
+    <div class="msg" id="extra-msg" role="status" aria-live="polite"></div>
+    <p class="foot-note">These appear at the foot of the Fixtures page. Change the season with the
+      selector at the top of the site to edit a different year. A row with no opponent is ignored.</p>
+  </div>`;
+}
+
+function extraMsg(kind, text){
+  const el = document.getElementById("extra-msg");
+  if(!el) return;
+  el.textContent = text || "";
+  el.className = text ? ("msg on " + kind) : "msg";
+}
+
+function wireExtras(host){
+  host.querySelectorAll(".extra-row").forEach(row => {
+    const i = +row.dataset.extra;
+    row.querySelectorAll("[data-f]").forEach(inp =>
+      inp.addEventListener("change", () => { EXTRAS[i][inp.dataset.f] = inp.value; }));
+  });
+  host.querySelectorAll("[data-rmextra]").forEach(b =>
+    b.addEventListener("click", () => {
+      EXTRAS.splice(+b.dataset.rmextra, 1);
+      if(!EXTRAS.length) EXTRAS.push(blankExtra());
+      renderSetup(); show("setup");
+    }));
+  const add = document.getElementById("extra-add");
+  if(add) add.addEventListener("click", () => { EXTRAS.push(blankExtra()); renderSetup(); show("setup"); });
+  const save = document.getElementById("extra-save");
+  if(save) save.addEventListener("click", saveExtras);
+}
+
+async function saveExtras(){
+  ENTRY_CODE = document.getElementById("extra-code").value.trim();
+  if(!ENTRY_CODE) return extraMsg("bad","Enter the club code before saving.");
+  if(!SAVE_URL)   return extraMsg("bad","Saving is not switched on in this copy of the site.");
+
+  const rows = EXTRAS.filter(e => e.who.trim());
+  const undated = rows.filter(e => !e.when).length;
+  if(undated) return extraMsg("bad", undated + " match" + (undated>1?"es have":" has") + " no date.");
+
+  const season = SEASON_KEY;
+  document.getElementById("extra-save").disabled = true;
+  extraMsg("busy","Saving the home and away matches...");
+  try{
+    const res = await fetch(SAVE_URL, {
+      method:"POST", redirect:"follow",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({action:"saveExtras", code:ENTRY_CODE, season,
+        matches: rows.map(e => ({date:e.when, opponent:e.who, homeAway:e.homeAway,
+                                 venue:e.where, notes:e.note}))})
+    });
+    const out = await res.json();
+    if(!out.ok) throw new Error(out.error || "the sheet refused it");
+    const done = out.saved + " match" + (out.saved === 1 ? "" : "es") + " saved for " + season
+               + ". They are on the Fixtures page.";
+    EXTRAS = null;
+    await loadSheet({quiet:true, tab:"setup"});
+    extraMsg("good", done);
+  }catch(err){
+    extraMsg("bad","Could not save: " + err.message + ". Nothing has been changed.");
+  }finally{
+    const b = document.getElementById("extra-save");
+    if(b) b.disabled = false;
   }
 }
 
@@ -1451,16 +1589,22 @@ const rowToMatch = r => ({phase:String(r.phase).trim(), round:+r.round, date:r.d
 function seasonsFromFeed(data){
   const out = {};
   const nights = data.seasons || [], roster = data.teams || [], res = data.results || [];
-  if(!nights.length) return null;
 
+  const extras   = data.friendlies || [];
+  const awayFor  = key => extras.filter(r => r.season === key).map(r => ({
+    when: r.date, who: r.opponent, where: r.venue,
+    homeAway: r.homeAway, note: r.notes
+  }));
   const played   = key => res.filter(r => r.season === key && isPlayedRow(r)).map(rowToMatch);
   const fixtures = key => res.filter(r => r.season === key).length;
 
-  const names = [...new Set(nights.map(r => r.season))];
+  const names     = [...new Set(nights.map(r => r.season).filter(Boolean))];
   const inResults = [...new Set(res.map(r => r.season).filter(Boolean))];
   SHEET_SEASONS = [...new Set([...names, ...inResults])];
   SHEET_FIXTURES = {};
   SHEET_SEASONS.forEach(k => SHEET_FIXTURES[k] = fixtures(k));
+
+  // seasons whose calendar is in the sheet
   for(const key of names){
     const mine = nights.filter(r => r.season === key);
     const phases = {};
@@ -1484,36 +1628,51 @@ function seasonsFromFeed(data){
     });
     for(const n of Object.keys(teams)) if(!teams[n].skip) teams[n].skip = teams[n].players.shift() || "";
 
+    const fallback = BUILTIN[key] || {};
     out[key] = {
-      current: mine.some(r => String(r.current).toLowerCase() === "yes"),
-      teams, notes:[], phases, away:[],
+      current:false,
+      teams: Object.keys(teams).length ? teams : (fallback.teams || {}),
+      notes: fallback.notes || [],
+      away:  awayFor(key).length ? awayFor(key) : (fallback.away || []),
+      phases,
       results: played(key)
     };
   }
-  // keep the away fixtures and notes that are written into this file
-  for(const key of Object.keys(out)){
-    if(SEASONS[key]){
-      out[key].away  = SEASONS[key].away  || [];
-      out[key].notes = SEASONS[key].notes || [];
-      if(!Object.keys(out[key].teams).length) out[key].teams = SEASONS[key].teams;
-    }
-  }
-  const chosenSeason = String(data.currentSeason || "").trim();
-  const sheetHasCurrent = Object.values(out).some(s => s.current);
-  for(const key of Object.keys(SEASONS)){
+
+  /* Seasons written into this file. Always rebuilt from the pristine copy, so a
+     season removed from the sheet vanishes rather than surviving from the last read. */
+  for(const key of Object.keys(BUILTIN)){
     if(out[key]) continue;
     const fromSheet = played(key);
-    const base = fromSheet.length ? {...SEASONS[key], results:fromSheet} : {...SEASONS[key]};
-    if(chosenSeason) base.current = (key === chosenSeason);
-    else if(sheetHasCurrent) base.current = false;
+    const base = JSON.parse(JSON.stringify(BUILTIN[key]));
+    if(fromSheet.length) base.results = fromSheet;
+    if(awayFor(key).length) base.away = awayFor(key);
+    base.current = false;
     out[key] = base;
   }
+
+  /* Rows with no season named at all belong to an older sheet, from before the
+     season column existed. Everything unlabelled belongs to the live season. */
+  const loose = res.filter(r => !String(r.season || "").trim() && isPlayedRow(r)).map(rowToMatch);
+
+  // exactly one season is on show, and the script's setting decides which
   const chosen = String(data.currentSeason || "").trim();
   if(chosen && out[chosen]){
-    for(const k of Object.keys(out)) out[k].current = (k === chosen);
-  } else if(!Object.values(out).some(s => s.current)){
-    const last = Object.keys(out).sort().pop();
-    if(last) out[last].current = true;
+    out[chosen].current = true;
+  } else {
+    const flagged = names.find(k => nights.some(r => r.season === k
+                      && String(r.current).toLowerCase() === "yes"));
+    if(flagged && out[flagged]) out[flagged].current = true;
+    else {
+      const fallbackKey = Object.keys(BUILTIN).find(k => BUILTIN[k].current && out[k])
+                       || Object.keys(out).sort().pop();
+      if(fallbackKey) out[fallbackKey].current = true;
+    }
+  }
+
+  if(loose.length){
+    const target = Object.keys(out).find(k => out[k].current);
+    if(target && !out[target].results.length) out[target].results = loose;
   }
   return out;
 }
@@ -1556,7 +1715,9 @@ function init(){
 
   const sel = document.getElementById("season");
   rebuildSeasonPicker();
-  sel.addEventListener("change", e => { SEASON_KEY = e.target.value; ENTRY_ROUND = null; renderAll(); });
+  sel.addEventListener("change", e => {
+    SEASON_KEY = e.target.value; ENTRY_ROUND = null; EXTRAS = null; renderAll();
+  });
 
   renderAll();
   const start = location.hash.replace("#","");
@@ -1593,11 +1754,15 @@ async function loadSheet(opts={}){
         + "Redeploy it as a new version so the latest code goes live.");
 
       const built = seasonsFromFeed(data);
-      if(built){
+      {
         for(const k of Object.keys(SEASONS)) delete SEASONS[k];
         Object.keys(built).sort().reverse().forEach(k => SEASONS[k] = built[k]);
-        if(!SEASONS[SEASON_KEY]) SEASON_KEY = Object.keys(SEASONS).find(k => SEASONS[k].current)
-                                              || Object.keys(SEASONS)[0];
+        const live = Object.keys(SEASONS).find(k => SEASONS[k].current);
+        // a season deleted from the sheet is gone, so stop looking at it
+        if(!SEASONS[SEASON_KEY]) SEASON_KEY = live || Object.keys(SEASONS)[0];
+        if(SEASON_KEY !== live && !SHEET_SEASONS.includes(SEASON_KEY)
+           && !BUILTIN[SEASON_KEY]) SEASON_KEY = live;
+        EXTRAS = null;   // rebuild the editor from what the sheet now says
         rebuildSeasonPicker();
         renderAll();
         if(opts.quiet) show(opts.tab || "enter");
@@ -1607,8 +1772,6 @@ async function loadSheet(opts={}){
           + ". " + n + " matches in " + SEASON_KEY + ".";
         return;
       }
-      // same rule as the season builder: fixture rows are not results
-      out = data.results.filter(isPlayedRow).map(rowToMatch);
     } else {
       if(/^\s*</.test(text)) throw new Error("a web page came back instead of data, "
         + "which usually means the sheet is not shared as 'Anyone with the link'");
@@ -1658,4 +1821,3 @@ init();
 </script>
 </body>
 </html>
-
