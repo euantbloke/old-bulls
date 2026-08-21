@@ -1253,12 +1253,24 @@ function renderSetup(){
   host.querySelectorAll("[data-drop]").forEach(b =>
     b.addEventListener("click", () => {
       const k = b.dataset.drop;
-      const typed = prompt(`This deletes ${k} and everything in it: the calendar, the teams and `
-        + `every result.\n\nType the season name to confirm.`);
-      if(typed === null) return;
-      if(typed.trim() !== k){ setupMsg("bad","That did not match, so nothing has been deleted."); return; }
-      seasonAction("deleteSeason", k);
+      if(b.dataset.armed === "1"){ seasonAction("deleteSeason", k); return; }
+      host.querySelectorAll("[data-drop]").forEach(disarmDelete);
+      b.dataset.armed = "1";
+      b.textContent = "Confirm delete";
+      b.style.background = "var(--house-red)";
+      b.style.color = "#fff";
+      setupMsg("busy", `Press Confirm delete again to remove ${k} and everything in it. `
+        + `The button goes back to normal in a few seconds if you leave it.`);
+      b.dataset.timer = setTimeout(() => { disarmDelete(b); setupMsg("busy",""); }, 8000);
     }));
+}
+
+function disarmDelete(b){
+  if(b.dataset.timer) clearTimeout(+b.dataset.timer);
+  b.dataset.armed = "0";
+  b.textContent = "Delete";
+  b.style.background = "none";
+  b.style.color = "var(--house-red)";
 }
 
 async function seasonAction(action, season){
@@ -1297,28 +1309,31 @@ async function seasonAction(action, season){
 }
 
 function manageCard(){
-  if(!SHEET_SEASONS.length){
-    return `<div class="card"><p class="eyebrow">Seasons in the sheet</p>
-      <p style="margin:0">None yet. The seasons showing at the top of the page are the ones built
-      into the site, and they cannot be removed from here.</p></div>`;
-  }
-  const rows = [...SHEET_SEASONS].sort().reverse().map(k => {
-    const live = SEASONS[k] && SEASONS[k].current;
-    const played = SEASONS[k] ? SEASONS[k].results.length : 0;
+  const rows = Object.keys(SEASONS).sort().reverse().map(k => {
+    const live = SEASONS[k].current;
+    const played = SEASONS[k].results.length;
+    const inSheet = SHEET_SEASONS.includes(k);
     return `<div class="night-row" style="grid-template-columns:1fr auto auto">
       <span><b>${esc(k)}</b>${live ? ' <span class="badge">Current</span>' : ''}
-        <span style="color:var(--slate);font-size:14.5px"> &middot; ${played} match${played===1?"":"es"} played</span></span>
-      <button type="button" class="btn-clear" data-make="${esc(k)}" ${live?"disabled style=\"opacity:.4\"":""}>Make current</button>
-      <button type="button" class="btn-clear" data-drop="${esc(k)}"
-        style="border-color:var(--house-red);color:var(--house-red)">Delete</button>
+        <span style="color:var(--slate);font-size:14.5px"> &middot; ${played} match${played===1?"":"es"} played${inSheet?"":", built in"}</span></span>
+      <button type="button" class="btn-clear" data-make="${esc(k)}"
+        ${live ? 'disabled style="opacity:.35"' : ''}>Make current</button>
+      ${inSheet
+        ? `<button type="button" class="btn-clear" data-drop="${esc(k)}"
+             style="border-color:var(--house-red);color:var(--house-red)">Delete</button>`
+        : `<span style="color:var(--slate);font-size:14px;text-align:center">&mdash;</span>`}
     </div>`;
   }).join("");
   return `<div class="card">
-    <p class="eyebrow">Seasons in the sheet</p>
+    <p class="eyebrow">Seasons</p>
     <h3 style="margin-bottom:10px">Manage or remove a season</h3>
     ${rows}
-    <p class="foot-note">Deleting a season removes its calendar, its team lists and every result
-      it holds. There is no undo here, though the sheet keeps its own version history under
+    <p class="foot-note">Creating a season makes it the current one straight away. If you have set
+      next season up early and want the site to carry on showing this one, press Make current
+      beside the season you want on show.</p>
+    <p class="foot-note">Delete removes a season's calendar, team lists and every result it holds.
+      Press it twice to confirm. Seasons marked "built in" are part of the site file and cannot be
+      deleted here. There is no undo, though the sheet keeps its own version history under
       File, Version history.</p>
   </div>`;
 }
