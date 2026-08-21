@@ -43,6 +43,30 @@ a{color:var(--house-blue)}
 .masthead{background:var(--granite);color:#fff;padding:var(--pad) var(--pad) 0}
 .mast-inner{max-width:1080px;margin:0 auto;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 .club-badge{flex:0 0 auto;width:96px;height:auto;display:block}
+/* ---------- season setup ---------- */
+.night-row{display:grid;grid-template-columns:118px 1fr 44px;gap:10px;align-items:center;
+  padding:5px 0;border-bottom:1px solid var(--hairline)}
+.night-row:last-child{border-bottom:0}
+.night-row .lab{font-size:14.5px;color:var(--slate);font-weight:600}
+.night-row input{font:600 16px var(--body);padding:7px 9px;border:1px solid var(--hairline);
+  border-radius:6px;background:#fff;color:var(--granite);width:100%}
+.night-row button{background:none;border:1px solid var(--hairline);border-radius:6px;
+  color:var(--slate);font:700 15px var(--body);cursor:pointer;padding:6px 0}
+.night-row button:hover{border-color:var(--house-red);color:var(--house-red)}
+.setup-teams{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:660px){.setup-teams{grid-template-columns:1fr}}
+.setup-team{border:1px solid var(--hairline);border-radius:11px;padding:12px 14px;background:var(--sheet)}
+.setup-team .tn{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--slate);margin-bottom:8px}
+.setup-team input{display:block;width:100%;margin-bottom:6px;font:400 16px var(--body);
+  padding:7px 9px;border:1px solid var(--hairline);border-radius:6px;background:#fff}
+.setup-team input.skip{font-weight:700;border-color:var(--granite)}
+details.fold{border:1px solid var(--hairline);border-radius:11px;padding:14px 18px;
+  margin-bottom:18px;background:var(--sheet)}
+details.fold > summary{font-family:var(--display);font-size:15px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--granite)}
+details.fold[open] > summary{margin-bottom:14px}
+
 @media (max-width:600px){.club-badge{width:68px}}
 .mast-text h1{
   margin:0;font-size:clamp(30px,7vw,50px);font-weight:800;
@@ -287,6 +311,7 @@ footer .wrap{max-width:1080px;margin:0 auto}
   <section class="view" id="v-teams"></section>
   <section class="view" id="v-honours"></section>
   <section class="view" id="v-enter"></section>
+  <section class="view" id="v-setup"></section>
 </main>
 
 <footer><div class="wrap">
@@ -450,7 +475,45 @@ SEASONS["2025/26"].results = ARCHIVE_2526.map(r => ({
 }));
 
 /* ============================================================
-   3. TABLE ENGINE
+   3. FIXTURE TEMPLATE
+   ============================================================
+   The pairings are the same every season: a double round robin in
+   each mini league, a single round robin in each trophy playoff, and
+   a double round robin across all eight for the Old Bull. Only the
+   dates and the names change from year to year. */
+const ORDER_PHASES = ["league","playoff","full"];
+const TEMPLATE = {
+  league:{ label:"Leagues 1 and 2", window:"September to November", rounds:6, fixtures:{
+    1:[["B",1,2],["C",3,4],["D",5,6],["E",7,8]],
+    2:[["B",5,7],["C",6,8],["D",1,3],["E",2,4]],
+    3:[["B",6,7],["C",1,4],["D",5,8],["E",2,3]],
+    4:[["B",1,2],["C",3,4],["D",5,6],["E",7,8]],
+    5:[["B",5,7],["C",6,8],["D",1,4],["E",2,3]],
+    6:[["B",6,7],["C",1,3],["D",5,8],["E",2,4]]}},
+  playoff:{ label:"Trophy playoffs", window:"November", rounds:3, fixtures:{
+    1:[["B","L1-1","L2-2"],["C","L1-2","L2-1"],["D","L1-3","L2-4"],["E","L2-3","L1-4"]],
+    2:[["B","L1-3","L2-3"],["C","L1-4","L2-4"],["D","L1-1","L2-1"],["E","L1-2","L2-2"]],
+    3:[["B","L2-1","L2-2"],["C","L1-1","L1-2"],["D","L2-3","L2-4"],["E","L1-3","L1-4"]]}},
+  full:{ label:"Old Bull league", window:"December to March", rounds:14, fixtures:{
+    1:[["B",4,6],["C",2,5],["D",7,8],["E",1,3]],
+    2:[["B",1,5],["C",6,8],["D",2,7],["E",3,4]],
+    3:[["B",4,7],["C",1,8],["D",3,5],["E",2,6]],
+    4:[["B",3,6],["C",5,8],["D",2,4],["E",1,7]],
+    5:[["B",6,7],["C",1,2],["D",4,5],["E",3,8]],
+    6:[["B",1,4],["C",2,8],["D",3,7],["E",5,6]],
+    7:[["B",5,7],["C",4,8],["D",2,3],["E",1,6]],
+    8:[["B",4,6],["C",2,5],["D",7,8],["E",1,3]],
+    9:[["B",1,5],["C",6,8],["D",2,7],["E",3,4]],
+    10:[["B",4,7],["C",1,8],["D",3,5],["E",2,6]],
+    11:[["B",3,6],["C",5,8],["D",2,4],["E",1,7]],
+    12:[["B",6,7],["C",1,2],["D",4,5],["E",3,8]],
+    13:[["B",1,4],["C",2,8],["D",3,7],["E",5,6]],
+    14:[["B",5,7],["C",4,8],["D",2,3],["E",1,6]]}}
+};
+const TOTAL_NIGHTS = ORDER_PHASES.reduce((n,p) => n + TEMPLATE[p].rounds, 0);
+
+/* ============================================================
+   4. TABLE ENGINE
    ============================================================ */
 const TROPHIES = {
   league:  {1:{name:"League 1", teams:[1,2,3,4]}, 2:{name:"League 2", teams:[5,6,7,8]}},
@@ -515,7 +578,7 @@ function placeholderLabel(v){
 }
 
 /* ============================================================
-   4. RENDERING
+   5. RENDERING
    ============================================================ */
 let SEASON_KEY = Object.keys(SEASONS).find(k => SEASONS[k].current);
 const S = () => SEASONS[SEASON_KEY];
@@ -822,7 +885,7 @@ function renderHonours(){
 }
 
 /* ============================================================
-   5. ENTERING RESULTS
+   6. ENTERING RESULTS
    ============================================================ */
 let ENTRY_ROUND = null;   // {phase, round}
 let ENTRY_CODE  = "";     // held for this visit only, never stored
@@ -929,7 +992,7 @@ function renderEnter(){
   document.getElementById("round-pick").addEventListener("change", e => {
     const [phase, round] = e.target.value.split("|");
     ENTRY_ROUND = {phase, round:+round};
-    renderEnter();
+    renderEnter(); renderSetup();
   });
   const btn = document.getElementById("btn-save");
   if(btn) btn.addEventListener("click", saveResults);
@@ -1050,11 +1113,276 @@ async function saveResults(){
 }
 
 /* ============================================================
-   6. NAVIGATION AND READING THE SHEET
+   7. SETTING UP NEXT SEASON
+   ============================================================ */
+let SETUP_DATES = null;   // 23 ISO dates, in phase order
+
+const isoAdd = (iso, days) => {
+  const d = new Date(iso + "T12:00:00");
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0,10);
+};
+
+/** The first Tuesday on or after 1 September of the given year. */
+function defaultStart(year){
+  const d = new Date(Date.UTC(year, 8, 1, 12));
+  while(d.getUTCDay() !== 2) d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0,10);
+}
+
+function nightList(){
+  const list = [];
+  for(const phase of ORDER_PHASES){
+    for(let r = 1; r <= TEMPLATE[phase].rounds; r++) list.push({phase, round:r});
+  }
+  return list;
+}
+
+function suggestSeasonName(){
+  const keys = Object.keys(SEASONS).sort();
+  const last = keys[keys.length - 1] || "2026/27";
+  const m = /^(\d{4})\/(\d{2})$/.exec(last);
+  if(!m) return "";
+  const a = +m[1] + 1;
+  return a + "/" + String((a + 1) % 100).padStart(2, "0");
+}
+
+function renderSetup(){
+  const host = document.getElementById("v-setup");
+  const nights = nightList();
+  const name = document.getElementById("setup-name")?.value || suggestSeasonName();
+  const startYear = +(/^(\d{4})/.exec(name)?.[1] || new Date().getFullYear());
+
+  if(!SETUP_DATES){
+    let d = defaultStart(startYear);
+    SETUP_DATES = nights.map((n, i) => (i === 0 ? d : (d = isoAdd(d, 7))));
+  }
+
+  const rows = nights.map((n, i) => `
+    <div class="night-row">
+      <span class="lab">${esc(TEMPLATE[n.phase].label.split(" ")[0])} rd ${n.round}</span>
+      <input type="date" value="${SETUP_DATES[i]}" data-night="${i}">
+      <button type="button" data-push="${i}" title="Push this night and everything after it back one week">&raquo;</button>
+    </div>`).join("");
+
+  const teamCards = [1,2,3,4,5,6,7,8].map(n => {
+    const prev = S().teams[n] || {skip:"", players:[]};
+    const vals = [prev.skip || "", ...(prev.players || [])];
+    while(vals.length < 6) vals.push("");
+    return `<div class="setup-team" data-team="${n}">
+      <div class="tn">Team ${n}</div>
+      ${vals.slice(0,6).map((v,i) => `<input type="text" value="${esc(v)}"
+         class="${i===0?"skip":""}" placeholder="${i===0?"Skip":"Player " + (i+1)}">`).join("")}
+    </div>`;
+  }).join("");
+
+  host.innerHTML = `
+    <p class="eyebrow">Once a year</p><h2>Set Up Next Season</h2>
+    <p class="sub">Name the season, set the dates, list the teams. The fixtures, the playoff
+      draw and every table are worked out from those three things.</p>
+
+    <div class="card">
+      <div class="entry-bar" style="margin-top:0">
+        <div class="field">
+          <label for="setup-name">Season</label>
+          <input id="setup-name" type="text" value="${esc(name)}" placeholder="2027/28">
+        </div>
+        <div class="field">
+          <label for="setup-start">First league night</label>
+          <input id="setup-start" type="date" value="${SETUP_DATES[0]}">
+        </div>
+        <button class="btn-clear" id="setup-regen" style="padding:11px 16px">Refill dates weekly</button>
+      </div>
+      <p class="foot-note">Filling the dates weekly gets you close. Use the &raquo; button beside a
+        night to push it and everything after it back a week, which is how you skip the Christmas
+        and New Year breaks and any week the ice is unavailable.</p>
+    </div>
+
+    <details class="fold" open>
+      <summary>The ${nights.length} nights</summary>
+      ${rows}
+    </details>
+
+    <details class="fold">
+      <summary>The eight teams</summary>
+      <p class="foot-note" style="margin:0 0 12px">The first name in each box is the skip.
+        Leave a box empty if the team has only five players. These are prefilled from
+        ${esc(SEASON_KEY)}, so it is usually a case of editing a few names.</p>
+      <div class="setup-teams">${teamCards}</div>
+    </details>
+
+    <div class="card">
+      <div class="entry-bar" style="margin-top:0">
+        <div class="field">
+          <label for="setup-code">Club code</label>
+          <input id="setup-code" type="password" inputmode="numeric" autocomplete="off" value="${esc(ENTRY_CODE)}">
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:16px;padding-bottom:10px">
+          <input type="checkbox" id="setup-overwrite" style="width:20px;height:20px">
+          Replace it if this season already exists
+        </label>
+        <button class="btn-save" id="setup-go" type="button">Create season</button>
+      </div>
+      <div class="msg" id="setup-msg" role="status" aria-live="polite"></div>
+      <p class="foot-note">This writes the new season into the club sheet and makes it the current
+        one. Previous seasons stay exactly as they are and remain in the season list.</p>
+    </div>`;
+
+  host.querySelectorAll("[data-night]").forEach(inp => {
+    inp.addEventListener("change", e => { SETUP_DATES[+e.target.dataset.night] = e.target.value; });
+  });
+  host.querySelectorAll("[data-push]").forEach(b => {
+    b.addEventListener("click", () => {
+      const from = +b.dataset.push;
+      for(let i = from; i < SETUP_DATES.length; i++) SETUP_DATES[i] = isoAdd(SETUP_DATES[i], 7);
+      renderSetup(); show("setup");
+    });
+  });
+  document.getElementById("setup-regen").addEventListener("click", () => {
+    let d = document.getElementById("setup-start").value || SETUP_DATES[0];
+    SETUP_DATES = nights.map((n,i) => (i === 0 ? d : (d = isoAdd(d, 7))));
+    renderSetup(); show("setup");
+  });
+  document.getElementById("setup-go").addEventListener("click", createSeason);
+}
+
+function setupMsg(kind, text){
+  const el = document.getElementById("setup-msg");
+  el.className = "msg on " + kind;
+  el.textContent = text;
+}
+
+async function createSeason(){
+  const season = document.getElementById("setup-name").value.trim();
+  ENTRY_CODE = document.getElementById("setup-code").value.trim();
+  const overwrite = document.getElementById("setup-overwrite").checked;
+
+  if(!season)     return setupMsg("bad","Give the season a name, for example 2027/28.");
+  if(!ENTRY_CODE) return setupMsg("bad","Enter the club code before creating the season.");
+  if(!SAVE_URL)   return setupMsg("bad","Saving is not switched on. The Apps Script link needs to "
+                                      + "go into SAVE_URL near the top of index.html.");
+  if(SETUP_DATES.some(d => !d)) return setupMsg("bad","Every night needs a date.");
+  for(let i = 1; i < SETUP_DATES.length; i++){
+    if(SETUP_DATES[i] <= SETUP_DATES[i-1])
+      return setupMsg("bad","The dates must run in order. Night " + (i+1) + " is not after night " + i + ".");
+  }
+
+  const nights = nightList().map((n,i) => ({phase:n.phase, round:n.round, date:SETUP_DATES[i]}));
+  const fixtures = [];
+  for(const phase of ORDER_PHASES){
+    for(let r = 1; r <= TEMPLATE[phase].rounds; r++){
+      for(const fx of TEMPLATE[phase].fixtures[r]){
+        fixtures.push({phase, round:r, sheet:fx[0],
+                       teamA: typeof fx[1] === "number" ? fx[1] : "",
+                       teamB: typeof fx[2] === "number" ? fx[2] : ""});
+      }
+    }
+  }
+
+  const teams = [];
+  let missing = 0;
+  document.querySelectorAll(".setup-team").forEach(card => {
+    const t = +card.dataset.team;
+    const vals = [...card.querySelectorAll("input")].map(i => i.value.trim());
+    if(!vals[0]) missing++;
+    vals.forEach((v,i) => { if(v) teams.push({team:t, name:v, role:i === 0 ? "skip" : "player"}); });
+  });
+  if(missing) return setupMsg("bad", missing + " team" + (missing>1?"s have":" has") + " no skip named.");
+
+  const btn = document.getElementById("setup-go");
+  btn.disabled = true;
+  setupMsg("busy","Creating " + season + " in the club sheet...");
+  try{
+    const res = await fetch(SAVE_URL, {
+      method:"POST", redirect:"follow",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({action:"newSeason", code:ENTRY_CODE, season, overwrite,
+                            nights, fixtures, teams})
+    });
+    const out = await res.json();
+    if(!out.ok) throw new Error(out.error || "the sheet rejected it");
+    setupMsg("good", season + " created: " + out.nights + " nights, " + out.fixtures
+      + " fixtures and " + out.players + " players. It is now the current season.");
+    SEASON_KEY = season;
+    ENTRY_ROUND = null;
+    SETUP_DATES = null;
+    await loadSheet({quiet:true, tab:"setup"});
+  }catch(err){
+    setupMsg("bad","Could not create the season: " + err.message + ". Nothing has been changed.");
+  }finally{
+    const b = document.getElementById("setup-go");
+    if(b) b.disabled = false;
+  }
+}
+
+/* ============================================================
+   8. BUILDING A SEASON FROM THE SHEET
+   ============================================================
+   The Seasons and Teams tabs hold the calendar and the rosters, so a
+   new season can be set up without anyone editing this file. */
+
+function seasonsFromFeed(data){
+  const out = {};
+  const nights = data.seasons || [], roster = data.teams || [], res = data.results || [];
+  if(!nights.length) return null;
+
+  const names = [...new Set(nights.map(r => r.season))];
+  for(const key of names){
+    const mine = nights.filter(r => r.season === key);
+    const phases = {};
+    for(const phase of ORDER_PHASES){
+      const dates = [];
+      mine.filter(r => r.phase === phase)
+          .sort((a,b) => (+a.round) - (+b.round))
+          .forEach(r => { dates[(+r.round) - 1] = r.date; });
+      if(!dates.length) continue;
+      phases[phase] = {label:TEMPLATE[phase].label, window:TEMPLATE[phase].window,
+                       dates, fixtures:TEMPLATE[phase].fixtures};
+    }
+    const teams = {};
+    roster.filter(r => r.season === key).forEach(r => {
+      const n = +r.team;
+      if(!teams[n]) teams[n] = {skip:"", players:[], later:[]};
+      const role = String(r.role || "").toLowerCase();
+      if(role === "skip") teams[n].skip = r.name;
+      else if(role === "later") teams[n].later.push(r.name);
+      else teams[n].players.push(r.name);
+    });
+    for(const n of Object.keys(teams)) if(!teams[n].skip) teams[n].skip = teams[n].players.shift() || "";
+
+    out[key] = {
+      current: mine.some(r => String(r.current).toLowerCase() === "yes"),
+      teams, notes:[], phases, away:[],
+      results: res.filter(r => r.season === key && r.shotsA !== "" && r.shotsB !== ""
+                               && r.teamA && r.teamB)
+                  .map(r => ({phase:r.phase, round:+r.round, date:r.date, sheet:r.sheet,
+                              teamA:+r.teamA, teamB:+r.teamB,
+                              shotsA:+r.shotsA, shotsB:+r.shotsB,
+                              endsA:+r.endsA || 0, endsB:+r.endsB || 0}))
+    };
+  }
+  // keep the away fixtures and notes that are written into this file
+  for(const key of Object.keys(out)){
+    if(SEASONS[key]){
+      out[key].away  = SEASONS[key].away  || [];
+      out[key].notes = SEASONS[key].notes || [];
+      if(!Object.keys(out[key].teams).length) out[key].teams = SEASONS[key].teams;
+    }
+  }
+  for(const key of Object.keys(SEASONS)) if(!out[key]) out[key] = SEASONS[key];
+  if(!Object.values(out).some(s => s.current)){
+    const last = Object.keys(out).sort().pop();
+    if(last) out[last].current = true;
+  }
+  return out;
+}
+
+/* ============================================================
+   9. NAVIGATION AND READING THE SHEET
    ============================================================ */
 const TABS = [["home","This week"],["tables","Tables"],["fixtures","Fixtures"],
               ["results","Results"],["teams","Teams"],["honours","Trophies"],
-              ["enter","Enter results"]];
+              ["enter","Enter results"],["setup","New season"]];
 
 function show(tab){
   TABS.forEach(([id]) => {
@@ -1064,6 +1392,14 @@ function show(tab){
   });
   history.replaceState(null,"","#"+tab);
   window.scrollTo({top:0,behavior:"instant"});
+}
+
+function rebuildSeasonPicker(){
+  const sel = document.getElementById("season");
+  if(!sel) return;
+  sel.innerHTML = Object.keys(SEASONS).map(k =>
+    `<option value="${k}">${k}${SEASONS[k].current?"":" (archive)"}</option>`).join("");
+  sel.value = SEASON_KEY;
 }
 
 function renderAll(){
@@ -1078,10 +1414,8 @@ function init(){
   TABS.forEach(([id]) => document.getElementById("t-"+id).addEventListener("click",()=>show(id)));
 
   const sel = document.getElementById("season");
-  sel.innerHTML = Object.keys(SEASONS).map(k =>
-    `<option value="${k}">${k}${SEASONS[k].current?"":" (archive)"}</option>`).join("");
-  sel.value = SEASON_KEY;
-  sel.addEventListener("change", e => { SEASON_KEY = e.target.value; renderAll(); });
+  rebuildSeasonPicker();
+  sel.addEventListener("change", e => { SEASON_KEY = e.target.value; ENTRY_ROUND = null; renderAll(); });
 
   renderAll();
   const start = location.hash.replace("#","");
@@ -1116,7 +1450,24 @@ async function loadSheet(opts={}){
       if(data.error) throw new Error(data.error);
       if(!Array.isArray(data.results)) throw new Error("the script sent no results. "
         + "Redeploy it as a new version so the latest code goes live.");
-      out = data.results;
+
+      const built = seasonsFromFeed(data);
+      if(built){
+        for(const k of Object.keys(SEASONS)) delete SEASONS[k];
+        Object.keys(built).sort().reverse().forEach(k => SEASONS[k] = built[k]);
+        if(!SEASONS[SEASON_KEY]) SEASON_KEY = Object.keys(SEASONS).find(k => SEASONS[k].current)
+                                              || Object.keys(SEASONS)[0];
+        rebuildSeasonPicker();
+        renderAll();
+        if(opts.quiet) show(opts.tab || "enter");
+        const n = SEASONS[SEASON_KEY].results.length;
+        foot.textContent = Object.keys(SEASONS).length + " seasons loaded from the club sheet at "
+          + new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})
+          + ". " + n + " matches in " + SEASON_KEY + ".";
+        return;
+      }
+      out = data.results.map(r => ({...r, round:+r.round, teamA:+r.teamA, teamB:+r.teamB,
+        shotsA:+r.shotsA, shotsB:+r.shotsB, endsA:+r.endsA||0, endsB:+r.endsB||0}));
     } else {
       if(/^\s*</.test(text)) throw new Error("a web page came back instead of data, "
         + "which usually means the sheet is not shared as 'Anyone with the link'");
