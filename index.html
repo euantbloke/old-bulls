@@ -332,7 +332,7 @@ footer .wrap{max-width:1080px;margin:0 auto}
 const SHEET_CSV_URL = "";
 
 /* Where the site SAVES results to. The Apps Script web app /exec link. */
-const SAVE_URL = "https://script.google.com/macros/s/AKfycbzxJ2dztYrLfWti1x2ifYiiA3X2m9DLTOHKePS7EW9VpAehIbgh6mO8TM4hHZIihAZtuQ/exec";
+const SAVE_URL = "https://script.google.com/macros/s/AKfycbzMQ7qjvgoSnlhnNGhbCKkCHY_V-xambQy5on8tAuzwfQpILMHcBE0k5AxG5XrBxdFfHg/exec";
 
 /* ============================================================
    2. SEASON DATA
@@ -1116,7 +1116,8 @@ async function saveResults(){
    7. SETTING UP NEXT SEASON
    ============================================================ */
 let SETUP_DATES = null;   // 23 ISO dates, in phase order
-let SHEET_SEASONS = [];   // seasons held in the club sheet, so removable
+let SHEET_SEASONS = [];   // seasons with rows in the club sheet, so removable
+let SHEET_FIXTURES = {}; // how many fixture rows the sheet holds for each
 
 const isoAdd = (iso, days) => {
   const d = new Date(iso + "T12:00:00");
@@ -1219,14 +1220,20 @@ function renderSetup(){
           <input id="setup-code" type="password" inputmode="numeric" autocomplete="off" value="${esc(ENTRY_CODE)}">
         </div>
         <label style="display:flex;align-items:center;gap:8px;font-size:16px;padding-bottom:10px">
+          <input type="checkbox" id="setup-live" style="width:20px;height:20px">
+          Show it on the site straight away
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:16px;padding-bottom:10px">
           <input type="checkbox" id="setup-overwrite" style="width:20px;height:20px">
           Replace it if this season already exists
         </label>
         <button class="btn-save" id="setup-go" type="button">Create season</button>
       </div>
       <div class="msg" id="setup-msg" role="status" aria-live="polite"></div>
-      <p class="foot-note">This writes the new season into the club sheet and makes it the current
-        one. Previous seasons stay exactly as they are and remain in the season list.</p>
+      <p class="foot-note">This writes the new season into the club sheet but leaves the site
+        showing whatever it shows now, so next season can be set up in the spring without
+        disturbing the one in progress. Tick the box above, or press Make current below when the
+        time comes.</p>
     </div>
 
     ${manageCard()}`;
@@ -1313,9 +1320,11 @@ function manageCard(){
     const live = SEASONS[k].current;
     const played = SEASONS[k].results.length;
     const inSheet = SHEET_SEASONS.includes(k);
+    const total = inSheet ? (SHEET_FIXTURES[k] || 0) : played;
+    const detail = inSheet ? `${played} of ${total} fixtures played` : `${played} matches, built in`;
     return `<div class="night-row" style="grid-template-columns:1fr auto auto">
       <span><b>${esc(k)}</b>${live ? ' <span class="badge">Current</span>' : ''}
-        <span style="color:var(--slate);font-size:14.5px"> &middot; ${played} match${played===1?"":"es"} played${inSheet?"":", built in"}</span></span>
+        <span style="color:var(--slate);font-size:14.5px"> &middot; ${detail}</span></span>
       <button type="button" class="btn-clear" data-make="${esc(k)}"
         ${live ? 'disabled style="opacity:.35"' : ''}>Make current</button>
       ${inSheet
@@ -1328,9 +1337,9 @@ function manageCard(){
     <p class="eyebrow">Seasons</p>
     <h3 style="margin-bottom:10px">Manage or remove a season</h3>
     ${rows}
-    <p class="foot-note">Creating a season makes it the current one straight away. If you have set
-      next season up early and want the site to carry on showing this one, press Make current
-      beside the season you want on show.</p>
+    <p class="foot-note">Make current sets which season the site opens on. A newly created season
+      sits here quietly until you switch to it, so next year's calendar can be built well in
+      advance.</p>
     <p class="foot-note">Delete removes a season's calendar, team lists and every result it holds.
       Press it twice to confirm. Seasons marked "built in" are part of the site file and cannot be
       deleted here. There is no undo, though the sheet keeps its own version history under
@@ -1348,6 +1357,7 @@ async function createSeason(){
   const season = document.getElementById("setup-name").value.trim();
   ENTRY_CODE = document.getElementById("setup-code").value.trim();
   const overwrite = document.getElementById("setup-overwrite").checked;
+  const goLive    = document.getElementById("setup-live").checked;
 
   if(!season)     return setupMsg("bad","Give the season a name, for example 2027/28.");
   if(!ENTRY_CODE) return setupMsg("bad","Enter the club code before creating the season.");
@@ -1389,13 +1399,17 @@ async function createSeason(){
       method:"POST", redirect:"follow",
       headers:{"Content-Type":"text/plain;charset=utf-8"},
       body: JSON.stringify({action:"newSeason", code:ENTRY_CODE, season, overwrite,
+                            makeCurrent:goLive, keepCurrent:SEASON_KEY,
                             nights, fixtures, teams})
     });
     const out = await res.json();
     if(!out.ok) throw new Error(out.error || "the sheet rejected it");
     const done = season + " created: " + out.nights + " nights, " + out.fixtures
-      + " fixtures and " + out.players + " players. It is now the current season.";
-    SEASON_KEY = season;
+      + " fixtures and " + out.players + " players. "
+      + (out.live ? "It is now the season on show."
+                  : "The site is still showing " + SEASON_KEY
+                    + ". Press Make current below when you want to switch over.");
+    if(out.live) SEASON_KEY = season;
     ENTRY_ROUND = null;
     SETUP_DATES = null;
     await loadSheet({quiet:true, tab:"setup"});
@@ -1423,11 +1437,21 @@ function seasonsFromFeed(data){
                          teamA:+r.teamA, teamB:+r.teamB,
                          shotsA:+r.shotsA, shotsB:+r.shotsB,
                          endsA:+r.endsA || 0, endsB:+r.endsB || 0});
-  const played = key => res.filter(r => r.season === key && r.shotsA !== "" && r.shotsB !== ""
-                                        && r.teamA && r.teamB).map(toMatch);
+  const num = v => { const s = String(v ?? "").trim();
+                     return s !== "" && Number.isFinite(+s) ? +s : null; };
+  /* A match counts as played when both teams are known and at least one shot was
+     scored. 14 to 0 is a real curling result, but 0 to 0 is an empty row. */
+  const isPlayed = r => num(r.shotsA) !== null && num(r.shotsB) !== null
+                        && num(r.teamA) > 0 && num(r.teamB) > 0
+                        && (num(r.shotsA) + num(r.shotsB)) > 0;
+  const played  = key => res.filter(r => r.season === key && isPlayed(r)).map(toMatch);
+  const fixtures = key => res.filter(r => r.season === key).length;
 
   const names = [...new Set(nights.map(r => r.season))];
-  SHEET_SEASONS = names.slice();
+  const inResults = [...new Set(res.map(r => r.season).filter(Boolean))];
+  SHEET_SEASONS = [...new Set([...names, ...inResults])];
+  SHEET_FIXTURES = {};
+  SHEET_SEASONS.forEach(k => SHEET_FIXTURES[k] = fixtures(k));
   for(const key of names){
     const mine = nights.filter(r => r.season === key);
     const phases = {};
@@ -1465,15 +1489,20 @@ function seasonsFromFeed(data){
       if(!Object.keys(out[key].teams).length) out[key].teams = SEASONS[key].teams;
     }
   }
+  const chosenSeason = String(data.currentSeason || "").trim();
   const sheetHasCurrent = Object.values(out).some(s => s.current);
   for(const key of Object.keys(SEASONS)){
     if(out[key]) continue;
     const fromSheet = played(key);
     const base = fromSheet.length ? {...SEASONS[key], results:fromSheet} : {...SEASONS[key]};
-    if(sheetHasCurrent) base.current = false;   // the sheet decides which season is live
+    if(chosenSeason) base.current = (key === chosenSeason);
+    else if(sheetHasCurrent) base.current = false;
     out[key] = base;
   }
-  if(!Object.values(out).some(s => s.current)){
+  const chosen = String(data.currentSeason || "").trim();
+  if(chosen && out[chosen]){
+    for(const k of Object.keys(out)) out[k].current = (k === chosen);
+  } else if(!Object.values(out).some(s => s.current)){
     const last = Object.keys(out).sort().pop();
     if(last) out[last].current = true;
   }
