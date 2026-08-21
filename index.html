@@ -199,6 +199,16 @@ footer .wrap{max-width:1080px;margin:0 auto}
   font-variant-numeric:tabular-nums}
 .side input:focus{outline:3px solid var(--gold);outline-offset:1px;border-color:var(--granite)}
 .side input.bad{border-color:var(--house-red);background:#fdf0ee}
+.rinkcard.clearing{border-color:var(--house-red);border-style:dashed;background:#fdf6f5}
+.rinkcard.clearing .side .who{color:var(--slate);text-decoration:line-through}
+.rink-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:10px}
+.rink-top .sheet-id{margin-bottom:0}
+.btn-clear{background:none;border:1px solid var(--hairline);border-radius:6px;color:var(--slate);
+  font:600 13px var(--body);padding:5px 11px;cursor:pointer;white-space:nowrap}
+.btn-clear:hover{border-color:var(--house-red);color:var(--house-red)}
+.btn-clear:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.clear-note{display:none;font-size:14px;font-weight:600;color:var(--house-red);margin-top:4px}
+.rinkcard.clearing .clear-note{display:block}
 .colhead{display:grid;grid-template-columns:1fr 74px 74px;gap:8px;margin-bottom:4px}
 .colhead span{font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:.12em;
   text-transform:uppercase;color:var(--slate);text-align:center}
@@ -276,13 +286,15 @@ footer .wrap{max-width:1080px;margin:0 auto}
 <script>
 /* ============================================================
    1. CONFIGURATION
-   ============================================================
-   Paste the "Publish to web" CSV link for the results sheet here.
-   Leave it empty and the page uses the results built in below.   */
+   ============================================================ */
+/* Where the site READS results from.
+   This is the "Publish to web" CSV link. It works, but Google caches it for a
+   few minutes, so scores will not appear the instant they are saved.
+   Once the Apps Script has been redeployed with the newer code, empty this
+   line and the site will read through the script instead, which is instant. */
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8du6zcTbhy8DJ4umYDm49CjybqxGDWbz3Ry1XNorr-ZT1W3RUIgMEL6mRxbq-u0YnMcXGnK5ybLT3/pub?output=csv";
 
-/* Paste the Apps Script web app /exec link here so results can be entered
-   on the site. Leave it empty and the entry page explains what is missing. */
+/* Where the site SAVES results to. The Apps Script web app /exec link. */
 const SAVE_URL = "https://script.google.com/macros/s/AKfycbzn5yug-eP_xbZpM92duIObrkr5UW8FhUghdzdjnhYcf81LC55IxfHC5KhXHLqPV2gw0Q/exec";
 
 /* ============================================================
@@ -864,10 +876,15 @@ function renderEnter(){
           <input type="number" inputmode="numeric" min="0" max="16" step="1"
             aria-label="Ends won by team ${team}" data-k="ends${side}" value="${val(side,"ends")}">
         </div>`;
-      return `<div class="rinkcard" data-sheet="${fx[0]}" data-a="${a}" data-b="${b}">
-        <div class="sheet-id">Sheet ${fx[0]}</div>
+      return `<div class="rinkcard" data-sheet="${fx[0]}" data-a="${a}" data-b="${b}"
+                   data-saved="${ex ? "1" : "0"}" data-clear="0">
+        <div class="rink-top">
+          <div class="sheet-id">Sheet ${fx[0]}</div>
+          <button type="button" class="btn-clear" data-clear-sheet="${fx[0]}">Clear rink</button>
+        </div>
         <div class="colhead"><span></span><span>Shots</span><span>Ends</span></div>
         ${row("A",a)}${row("B",b)}
+        <p class="clear-note">Will be cleared when you save.</p>
       </div>`;
     }).join("");
   }
@@ -904,6 +921,30 @@ function renderEnter(){
   });
   const btn = document.getElementById("btn-save");
   if(btn) btn.addEventListener("click", saveResults);
+
+  document.querySelectorAll(".btn-clear").forEach(b => {
+    b.addEventListener("click", () => {
+      const card = b.closest(".rinkcard");
+      if(card.dataset.clear === "1"){          // second press undoes it
+        card.dataset.clear = "0";
+        card.classList.remove("clearing");
+        b.textContent = "Clear rink";
+        renderEnter();                          // put the saved scores back
+        return;
+      }
+      const hasScore = [...card.querySelectorAll("input")].some(i => i.value.trim() !== "");
+      if(card.dataset.saved === "1" && hasScore){
+        const who = "Team " + card.dataset.a + " v Team " + card.dataset.b;
+        if(!confirm("Clear the result for sheet " + card.dataset.sheet + ", " + who + "?\n\n"
+                    + "It stays on screen until you press Save results.")) return;
+      }
+      card.querySelectorAll("input").forEach(i => { i.value = ""; i.classList.remove("bad"); });
+      card.dataset.clear = "1";
+      card.classList.add("clearing");
+      b.textContent = "Undo clear";
+      entryMsg("busy","Press Save results to write the change to the sheet.");
+    });
+  });
 }
 
 function entryMsg(kind, text){
@@ -933,9 +974,13 @@ async function saveResults(){
     const raw = k => get(k).value.trim();
     const sa = raw("shotsA"), sb = raw("shotsB");
     if(sa === "" && sb === ""){
-      matches.push({phase:ENTRY_ROUND.phase, round:ENTRY_ROUND.round, sheet:card.dataset.sheet,
-                    teamA:+card.dataset.a, teamB:+card.dataset.b,
-                    shotsA:"", shotsB:"", endsA:"", endsB:""});
+      /* Blank means leave alone, unless Clear rink was pressed, in which case
+         send blanks so the row is wiped in the sheet. */
+      if(card.dataset.clear === "1" || card.dataset.saved === "1"){
+        matches.push({phase:ENTRY_ROUND.phase, round:ENTRY_ROUND.round, sheet:card.dataset.sheet,
+                      teamA:+card.dataset.a, teamB:+card.dataset.b,
+                      shotsA:"", shotsB:"", endsA:"", endsB:"", cleared:true});
+      }
       continue;
     }
     if(sa === "" || sb === ""){
@@ -956,7 +1001,12 @@ async function saveResults(){
                   endsA:ea === "" ? "" : +ea, endsB:eb === "" ? "" : +eb});
   }
   if(bad){ entryMsg("bad","Check the boxes outlined in red. Shots go 0 to 40, ends 0 to 16, and each rink needs both scores."); return; }
-  if(!matches.some(m => m.shotsA !== "")){ entryMsg("bad","Nothing to save. Enter at least one rink."); return; }
+  const scored  = matches.filter(m => m.shotsA !== "").length;
+  const cleared = matches.filter(m => m.cleared).length;
+  if(!scored && !cleared){
+    entryMsg("bad","Nothing to save. Enter a score, or press Clear rink on the one you want removed.");
+    return;
+  }
 
   const btn = document.getElementById("btn-save");
   btn.disabled = true;
@@ -972,9 +1022,10 @@ async function saveResults(){
     });
     const out = await res.json();
     if(!out.ok) throw new Error(out.error || "the sheet rejected the update");
-    const n = matches.filter(m => m.shotsA !== "").length;
-    entryMsg("good", `Saved. ${n} ${n===1?"rink":"rinks"} written to the sheet at ${out.at}. `
-      + `The tables are updating now.`);
+    const bits = [];
+    if(scored)  bits.push(`${scored} ${scored===1?"rink":"rinks"} written`);
+    if(cleared) bits.push(`${cleared} ${cleared===1?"rink":"rinks"} cleared`);
+    entryMsg("good", `Saved at ${out.at}. ` + bits.join(" and ") + `. The tables are updating now.`);
     await loadSheet({quiet:true});
     renderEnter();
   }catch(err){
@@ -987,7 +1038,7 @@ async function saveResults(){
 }
 
 /* ============================================================
-   5. NAVIGATION AND OPTIONAL LIVE SHEET
+   6. NAVIGATION AND READING THE SHEET
    ============================================================ */
 const TABS = [["home","This week"],["tables","Tables"],["fixtures","Fixtures"],
               ["results","Results"],["teams","Teams"],["honours","Trophies"],
@@ -1030,38 +1081,62 @@ function init(){
    Expected header row: phase,round,date,sheet,teamA,teamB,shotsA,shotsB,endsA,endsB */
 async function loadSheet(opts={}){
   const foot = document.getElementById("foot-status");
-  if(!SHEET_CSV_URL){
-    foot.textContent = "Results are stored in this page. To switch to the live results sheet, "
-      + "paste its link into SHEET_CSV_URL near the top of the file.";
+  const url = SHEET_CSV_URL || SAVE_URL;
+  const viaScript = !SHEET_CSV_URL && !!SAVE_URL;
+
+  if(!url){
+    foot.textContent = "Results are stored in this page. To go live, paste the Apps Script "
+      + "web app link into SAVE_URL near the top of the file.";
     return;
   }
+
   try{
-    const res = await fetch(SHEET_CSV_URL, {cache:"no-store"});
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const rows = parseCSV(await res.text());
-    const head = rows.shift().map(h => h.trim());
-    const need = ["phase","round","date","sheet","teamA","teamB","shotsA","shotsB","endsA","endsB"];
-    const idx = Object.fromEntries(need.map(n => [n, head.indexOf(n)]));
-    if(Object.values(idx).some(i => i < 0)) throw new Error("column names do not match");
-    const out = [];
-    for(const r of rows){
-      if(!r[idx.phase] || r[idx.shotsA] === "" || r[idx.shotsB] === "") continue;
-      out.push({
-        phase:r[idx.phase].trim(), round:+r[idx.round], date:r[idx.date].trim(), sheet:r[idx.sheet].trim(),
-        teamA:+r[idx.teamA], teamB:+r[idx.teamB], shotsA:+r[idx.shotsA], shotsB:+r[idx.shotsB],
-        endsA:+r[idx.endsA]||0, endsB:+r[idx.endsB]||0
-      });
+    const res = await fetch(url + (viaScript ? "?t=" + Date.now() : ""), {cache:"no-store"});
+    if(!res.ok) throw new Error("the server answered " + res.status);
+    const text = await res.text();
+
+    let out;
+    const looksJSON = text.trim().startsWith("{");
+    if(looksJSON){
+      let data;
+      try{ data = JSON.parse(text); }
+      catch(e){ throw new Error("the reply was not readable"); }
+      if(data.error) throw new Error(data.error);
+      if(!Array.isArray(data.results)) throw new Error("the script sent no results. "
+        + "Redeploy it as a new version so the latest code goes live.");
+      out = data.results;
+    } else {
+      if(/^\s*</.test(text)) throw new Error("a web page came back instead of data, "
+        + "which usually means the sheet is not shared as 'Anyone with the link'");
+      const rows = parseCSV(text);
+      const head = (rows.shift() || []).map(x => x.trim());
+      const need = ["phase","round","date","sheet","teamA","teamB","shotsA","shotsB","endsA","endsB"];
+      const idx = Object.fromEntries(need.map(n => [n, head.indexOf(n)]));
+      const missing = need.filter(n => idx[n] < 0);
+      if(missing.length) throw new Error("the columns " + missing.join(", ")
+        + " were not found. The first line received was: " + (head.join(",").slice(0,80) || "(empty)"));
+      out = [];
+      for(const r of rows){
+        if(!r[idx.phase] || r[idx.shotsA] === "" || r[idx.shotsB] === "") continue;
+        if(!r[idx.teamA] || !r[idx.teamB]) continue;
+        out.push({
+          phase:r[idx.phase].trim(), round:+r[idx.round], date:r[idx.date].trim(),
+          sheet:r[idx.sheet].trim(), teamA:+r[idx.teamA], teamB:+r[idx.teamB],
+          shotsA:+r[idx.shotsA], shotsB:+r[idx.shotsB],
+          endsA:+r[idx.endsA]||0, endsB:+r[idx.endsB]||0
+        });
+      }
     }
+
     const cur = Object.keys(SEASONS).find(k => SEASONS[k].current);
     SEASONS[cur].results = out;
     renderAll();
     if(opts.quiet) show("enter");
-    foot.textContent = "Results loaded from the club sheet at "
-      + new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})
-      + ". " + out.length + " matches.";
+    foot.textContent = out.length + " matches loaded from the club sheet at "
+      + new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}) + ".";
   }catch(err){
-    foot.textContent = "The results sheet could not be read (" + err.message
-      + "). The tables below show the last results saved in this page.";
+    foot.textContent = "The results could not be read: " + err.message
+      + ". The tables show the last results saved in this page.";
   }
 }
 
