@@ -160,8 +160,8 @@ h3{font-size:19px;font-weight:700;margin:0 0 2px;letter-spacing:-.005em}
 .table-wrap{overflow-x:auto;margin:0 calc(var(--pad) * -1);padding:0 var(--pad)}
 table{border-collapse:collapse;width:100%;min-width:640px;table-layout:fixed}
 /* every column the same width except the skip's name */
-th,td{width:7.1%}
-th:nth-child(3),td:nth-child(3){width:22%}
+table th,table td{width:7.1%}
+table th:nth-child(3),table td:nth-child(3){width:22%}
 caption{text-align:left;font-family:var(--display);font-weight:700;font-size:19px;
   text-transform:uppercase;letter-spacing:.01em;padding-bottom:2px}
 th,td{padding:9px 8px;text-align:center;border-bottom:1px solid var(--hairline)}
@@ -209,12 +209,29 @@ tr.leader td.pos{color:var(--granite)}
   background:var(--house-red);color:#fff;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:1px}
 
 /* ---------- fixtures ---------- */
-.fx{width:100%;border-collapse:collapse;min-width:520px}
-.fx th,.fx td{padding:8px;text-align:left;border-bottom:1px solid var(--hairline)}
-.fx td.d{white-space:nowrap;font-weight:600;width:1%}
-.fx td.m{font-family:var(--display);font-weight:600}
-.fx tr.past td{color:var(--slate)}
-.fx tr.next td{background:#fdf6e0}
+.fxhead,.fxrow{display:grid;grid-template-columns:40px 128px repeat(4,minmax(0,1fr));
+  gap:10px;align-items:center;padding:9px 6px;border-bottom:1px solid var(--hairline)}
+.fxhead{padding-bottom:6px;border-bottom:2px solid var(--granite)}
+.fxhead span{font-family:var(--display);font-size:11.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--slate)}
+.fxrow:last-child{border-bottom:0}
+.fxrow .rd{font-family:var(--display);font-weight:700;color:var(--slate)}
+.fxrow .dt{font-weight:600;white-space:nowrap}
+.fxrow .m{font-family:var(--display);font-weight:600;font-size:16.5px}
+.fxrow .m .sh{display:none}
+.fxrow .m em{font-style:normal;font-weight:400;font-size:14px;color:var(--slate)}
+.fxrow.past{color:var(--slate)}
+.fxrow.past .dt{font-weight:400}
+.fxrow.next{background:#fdf6e0;border-radius:8px}
+@media (max-width:720px){
+  .fxhead{display:none}
+  .fxrow{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;padding:12px 4px}
+  .fxrow .rd,.fxrow .dt{grid-column:1 / -1}
+  .fxrow .rd{font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+  .fxrow .dt{font-size:17px;margin-bottom:2px}
+  .fxrow .m .sh{display:inline;color:var(--slate);font-size:12px;letter-spacing:.1em;
+    margin-right:6px;font-weight:700}
+}
 .away{list-style:none;padding:0;margin:0}
 .away li{padding:9px 0;border-bottom:1px solid var(--hairline);font-size:16.5px}
 .away li:last-child{border-bottom:0}
@@ -592,6 +609,11 @@ function fixtureTeams(season, phase, entry){
   const one = v => (typeof v === "number") ? v : (map[v] ?? null);
   return [one(entry[1]), one(entry[2])];
 }
+function shortPlaceholder(v){
+  if(typeof v === "number") return "T" + v;
+  const [lg,pos] = v.split("-");
+  return ["1st","2nd","3rd","4th"][pos-1] + " " + (lg === "L1" ? "L1" : "L2");
+}
 function placeholderLabel(v){
   if(typeof v === "number") return "Team " + v;
   const [lg,pos] = v.split("-");
@@ -773,18 +795,19 @@ function renderFixtures(){
       const rnd = i + 1;
       const cells = ph.fixtures[rnd].map(fx => {
         const [a,b] = fixtureTeams(S(), phase, fx);
-        return (a && b) ? `${a} v ${b}`
-          : `<span style="font-weight:400">${esc(placeholderLabel(fx[1]))} v ${esc(placeholderLabel(fx[2]))}</span>`;
-      });
+        const tie = (a && b) ? `${a} v ${b}`
+                  : `<em>${esc(shortPlaceholder(fx[1]))} v ${esc(shortPlaceholder(fx[2]))}</em>`;
+        return `<span class="m"><span class="sh">${fx[0]}</span>${tie}</span>`;
+      }).join("");
       const cls = (nx && nx.phase===phase && nx.round===rnd) ? "next"
                 : roundPlayed(phase,rnd) ? "past" : "";
-      return `<tr class="${cls}"><td class="d">${rnd}</td><td class="d">${fmtShort(d)}</td>
-        ${cells.map(c=>`<td class="m">${c}</td>`).join("")}</tr>`;
+      return `<div class="fxrow ${cls}"><span class="rd">Rd ${rnd}</span>
+        <span class="dt">${fmtShort(d)}</span>${cells}</div>`;
     }).join("");
     html += `<div class="card"><p class="eyebrow">${esc(ph.window)}</p><h3>${esc(ph.label)}</h3>
-      <div class="table-wrap"><table class="fx"><thead><tr>
-        <th>Rd</th><th>Date</th><th>Sheet B</th><th>Sheet C</th><th>Sheet D</th><th>Sheet E</th>
-      </tr></thead><tbody>${rows}</tbody></table></div></div>`;
+      <div class="fxhead"><span>Rd</span><span>Date</span>
+        <span>Sheet B</span><span>Sheet C</span><span>Sheet D</span><span>Sheet E</span></div>
+      ${rows}</div>`;
   }
   const away = [...S().away].sort((a,b) => String(a.when).localeCompare(String(b.when)));
   html += `<div class="card"><p class="eyebrow">Home and away matches</p>
